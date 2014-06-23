@@ -12,8 +12,6 @@ $CommentsPrefix = 'Comments_on_';
 $EditAllowed = 1;
 $StyleSheetPage = 'StyleSheet';
 $MaxPost = 430080;
-#$UploadAllowed = 1;
-#@UploadTypes = ();
 $HomePage = 'Home';
 $RCName = 'Recent Changes';
 @UserGotoBarPages = ($HomePage, $AskPage, $RCName);
@@ -29,16 +27,6 @@ $CreoleTableCellsAllowBlockLevelElements = 1;
 $CreoleDashStyleUnorderedLists = 1;
 
 $HtmlHeaders = '<script type="text/javascript" src="/js/uploader.js"></script><script type="text/javascript" src="/js/underlineAccesskeys.js"></script>';
-
-my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday) = gmtime(time);
-my $today = sprintf("%d-%02d-%02d %02d:%02d:%02d", $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
-
-#push(@MyInitVariables, \&EditButtonAdd);
-
-#sub EditButtonAdd() {
-    #my $edit_url = $ScriptName . '?action=edit;id=' . UrlEncode(GetId());
-    #$HtmlHeaders .= qq{<link rel="alternate" type="application/wiki" title="Edit this page!" href="} . $edit_url . qq{"/>};
-#}
 
 push(@MyRules, \&MyLinksWithAccessKey);
 sub MyLinksWithAccessKey {
@@ -252,17 +240,3 @@ sub GetUploadForm {
                     $q->button(-name=>'uploadButton', -value=>T('Upload'), -onClick=>'uploadFile()'),
                     $q->span({-id=>'progressNumber'}));
 }
-
-push(@MyInitVariables, sub {
-    if (GetParam('action', 'browse') eq 'browse') {
-        my $id = GetId();
-        if ($id) {
-            OpenPage($id);
-            if (TextIsFile($Page{text}) or not UserCanEdit($id)) {
-                #$CommentsPrefix = 'Comments_on_';
-            } else {
-                $CommentsPrefix = '.*';
-            }
-        }
-    }
-     });
