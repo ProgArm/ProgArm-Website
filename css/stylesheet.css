@@ -1,0 +1,252 @@
+@font-face {
+    font-family: terminus1;
+    src: url(fonts/TerminusRe33-Bold.ttf);
+}
+
+@font-face {
+    font-family: terminus2;
+    src: url(fonts/TerminusTTF-4.38.2.ttf);
+}
+
+body {
+    background-color: #000000;
+    color: #555555;
+    font-family: terminus1;
+/*    font-family: Arial,Helvetica,sans-serif; */
+    margin: 12px 0px;
+}
+
+.header, .wrapper, .footer {
+    max-width: 900px;
+    text-align: left;
+    margin: 0px auto;
+}
+
+/*.footer a {
+    white-space:nowrap;
+} */
+
+form.search {
+    float: right;
+/*    display: inline;*/
+    padding: 6px 8px 6px 35px;
+    margin-right: 5px;
+    margin-top: -18px;
+}
+
+form.search input[type="text"] {
+/*    border: 1px solid #D1D1D1; */
+    font: bold 12px Arial,Helvetica,Sans-serif;
+    width: 170px;
+    padding: 6px 12px;
+    margin-right: 5px;
+    margin-top: 15px;
+}
+
+h1 {
+    display: inline-block;
+    width: 100%;
+}
+
+h1>a.edit {
+    float: right;
+    text-decoration: none;
+    font-size: 50%;
+    font-weight: normal;
+    color: #DDDDDD;
+    padding: 8px;
+}
+
+span.accesskey {
+    text-decoration: underline;
+}
+
+a {
+    color: #008A50; /* #999999; */
+    text-decoration: none;
+    font-family: terminus1, terminus2;
+/*    font-family: "Lucida Console", Monaco, monospace;*/
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+a:active {
+    text-decoration: underline;
+}
+
+.header>.gotobar {
+    float: left;
+    font-family: terminus1;
+/*    font-family: Arial,Helvetica,sans-serif; */
+    position: static;
+    width: 100%;
+}
+
+
+.header>h1 {
+    margin-top: 32px;
+    margin-bottom: 4px;
+    position: inherit;
+    font-weight: normal;
+}
+
+div.page h1 {
+    margin: 0px 3px;
+    font-size: 18px;
+}
+
+strong, th, h1, h2, h3, h4 {
+    font-weight: normal;
+}
+
+h1:before {
+    content: "you@ProgArm:~/";
+    font-size: 17px;
+}
+h1:after {
+    content: "$";
+    font-size: 17px;
+}
+
+h3 {
+    margin-top: 28px;
+    font-weight: normal;
+}
+
+.gotobar>a {
+    right: 0px;
+    top: 0px;
+    white-space: nowrap;
+}
+
+.header>.gotobar>a {
+/*    color: #888888; */
+    font-family: terminus1;
+/*    font-family: Arial,Helvetica,sans-serif; */
+    font-size: 16px;
+    padding: 10px;
+    font-weight: normal;
+    float: left;
+/*    margin-top: 0px !important;
+    margin-bottom: 0px !important; */
+    margin: 5px;
+    
+}
+
+.header>.gotobar>a:hover {
+    text-decoration: none;
+    outline: #555555 solid 1px;
+} 
+
+.local {
+    height: 100%;
+}
+
+input, textarea { 
+    color: #555555;
+    background-color: #111111;
+    border-style: solid;
+    border-color: #666666;
+    border-width: 1px;
+    font-family: terminus1;
+/*    font-family: Arial,Helvetica,sans-serif; */
+}
+/*
+.header form input {
+    font-size: 18px;
+    background-color: #EAEAEA;
+    border-color: #BBBBBB;
+    padding: 0px;
+    border-radius:1px;
+} */
+
+.footer span.edit a {
+    margin-right: 25px;
+}
+
+.footer br {
+    margin-bottom: 5px;
+}
+
+input {
+    font-size:95%;
+}
+
+table.user {
+    border-collapse: collapse;
+}
+
+table.user tr td {
+    border: 1px solid #777777;
+    padding: 3px;
+    margin: 0px;
+}
+
+.homepage {
+    display: none;
+}
+
+a.number {
+    font-size: 60%;
+    vertical-align: top;
+}
+
+li {
+    margin: 4px 0px;
+}
+
+p.comment {
+    margin: 50px 0px 0px 0px;
+}
+
+div.page p.comment {
+    margin: 0px 0px 0px 0px;
+}
+
+.footer>form.search, div.footer span.gotobar, div.footer span.edit>br {
+    display:none;
+}
+
+code {
+    font-size: 16px;
+    font-family: terminus1;
+/*    font-family: "Lucida Console", Monaco, monospace;*/
+}
+
+.rc>p a {
+    padding: 0px 10px;
+}
+
+div.page {
+    background-color: #0B0B0B;
+    border-color: #BBBBBB;
+    border-radius: 1px;
+    padding: 10px;
+    margin: 20px 0px 5px 0px;
+    font-size: 100%;
+/*    font-weight: bold;*/
+}
+
+div.page>hr {
+    counter-increment: commentscount;
+}
+
+div.page p.comment:after {
+    content: " (" counter(commentscount) ")";
+}
+
+div.page>hr , div.page>hr:first-of-type~*:not(.comment) {
+    visibility: hidden;
+    position: absolute;
+}
+
+.more {
+    margin-top: 6px;
+    margin-bottom: 35px;
+}
+
+.logo {
+    display: inline;
+}
