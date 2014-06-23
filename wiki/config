@@ -1,0 +1,264 @@
+use utf8;
+
+package OddMuse;
+$SiteName  = "ProgArm";
+$AdminPass = 'TODO';
+$EditPass  = 'TODO';
+$CommentsPrefix = 'Comments_on_';
+$EditAllowed = 1;
+$StyleSheetPage = 'StyleSheet';
+$MaxPost = 430080;
+#$UploadAllowed = 1;
+#@UploadTypes = ();
+$HomePage = 'Home';
+$RCName = 'Recent Changes';
+@UserGotoBarPages = ($HomePage, $AskPage, $RCName);
+$SurgeProtectionViews = 20;
+
+$Translate{'Journal'} = ' ';
+
+$FullUrl = ($ENV{'HTTPS'} ? 'https' : 'http') . '://progarm.org';
+$ScriptName = ($ENV{'HTTPS'} ? 'https' : 'http') . '://progarm.org';
+
+$CreoleLineBreaks = 1;
+$CreoleTableCellsAllowBlockLevelElements = 1;
+$CreoleDashStyleUnorderedLists = 1;
+
+$HtmlHeaders = '<script type="text/javascript" src="/js/uploader.js"></script><script type="text/javascript" src="/js/underlineAccesskeys.js"></script>';
+
+my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday) = gmtime(time);
+my $today = sprintf("%d-%02d-%02d %02d:%02d:%02d", $year + 1900, $mon + 1, $mday, $hour, $min, $sec);
+
+#push(@MyInitVariables, \&EditButtonAdd);
+
+#sub EditButtonAdd() {
+    #my $edit_url = $ScriptName . '?action=edit;id=' . UrlEncode(GetId());
+    #$HtmlHeaders .= qq{<link rel="alternate" type="application/wiki" title="Edit this page!" href="} . $edit_url . qq{"/>};
+#}
+
+push(@MyRules, \&MyLinksWithAccessKey);
+sub MyLinksWithAccessKey {
+  if (m/\G(\[\[$FreeLinkPattern\{(.)\}\]\])/cog) {
+    my ($id, $key) = ($2, $3);
+    Dirty($1);
+    $id = FreeToNormal($id);
+    my ($class, $resolved, $title, $exists) = ResolveId($id);
+    my $text = NormalToFree($id);
+    if ($resolved) { # anchors don't exist as pages, therefore do not use $exists
+      print ScriptLink(UrlEncode($resolved), $text, $class, undef, $title, $key);
+    } else {
+      print "[[" . QuoteHtml($text) . GetEditLink($id, '?') . "]]";
+    }
+    return ''; # this is a dirty rule that depends the definition of other pages
+  }
+  return undef; # the rule didn't match
+}
+
+$Translate{'Search:'} = ' ';
+$Translate{'Go!'} = 'Search';
+$Translate{'Edit this page'} = 'Edit';
+$Translate{'Comments on this page'} = 'Comments';
+sub GetSearchForm {
+    my $form = # $q->label({-for=>'search'}, '') . ''
+      $q->textfield(-name=>'search', -id=>'search', -size=>20, -placeholder=>'Find...',
+                    -accesskey=>T('f')) . '';
+    if ($ReplaceForm) {
+        $form .= $q->label({-for=>'replace'}, T('Replace:')) . ' '
+            . $q->textfield(-name=>'replace', -id=>'replace', -size=>20) . ' '
+            . $q->checkbox(-name=>'delete', -label=>T('Delete')) . ' ';
+    }
+    if (%Languages) {
+        $form .= $q->label({-for=>'searchlang'}, T('Language:')) . ' '
+            . $q->textfield(-name=>'lang', -id=>'searchlang', -size=>10,
+                            -default=>GetParam('lang', '')) . ' ';
+  }
+    return GetFormStart(undef, 'get', 'search')
+        . $form . #$q->submit('dosearch', T('Go!')) .
+        $q->endform;
+}
+
+sub GetHeader {
+    my ($id, $title, $oldId, $nocache, $status) = @_;
+    my $embed = GetParam('embed', $EmbedWiki);
+    my $alt = T('[Home]');
+    my $result = GetHttpHeader('text/html', $nocache, $status);
+    if ($oldId) {
+        $Message .= $q->p('(' . Ts('redirected from %s', GetEditLink($oldId, $oldId)) . ')');
+    }
+    $result .= GetHtmlHeader(Ts('%s: ', $SiteName) . UnWiki($title), $id);
+    if ($embed) {
+        $result .= $q->div({-class=>'header'}, $q->div({-class=>'message'}, $Message))  if $Message;
+        return $result;
+    }
+    $result .= $q->start_div({-class=>'header'});
+    if (not $embed and $LogoUrl) {
+        my $url = $IndexHash{$LogoUrl} ? GetDownloadLink($LogoUrl, 2) : $LogoUrl;
+        $result .= ScriptLink(UrlEncode($HomePage),
+                              $q->img({-src=>$url, -alt=>$alt, -class=>'logo'}), 'logo');
+    }
+    if (GetParam('toplinkbar', $TopLinkBar)) {
+        $result .= GetGotoBar($id);
+        if (%SpecialDays) {
+            my ($sec, $min, $hour, $mday, $mon, $year) = gmtime($Now);
+            if ($SpecialDays{($mon + 1) . '-' . $mday}) {
+                $result .= $q->br() . $q->span({-class=>'specialdays'},
+                                               $SpecialDays{($mon + 1) . '-' . $mday});
+            }
+        }
+    }
+    $result .= $q->div({-class=>'message'}, $Message)  if $Message;
+    if ($id ne '') {
+        if (UserCanEdit($id, 0) and $id ne $AskPage) { # custom
+            $result .= $q->h1(GetEditLink($id, T('Edit this page'), undef, T('e')) . GetSearchLink($id, '', '', T('Click to search for references to this page')));
+        } else {
+            $result .= $q->h1(GetSearchLink($id, '', '', T('Click to search for references to this page')));
+        }
+    } else {
+        $result .= $q->h1($title);
+    }
+    return $result . $q->end_div() . $q->start_div({-class=>'wrapper'});
+}
+
+sub GetFooterLinks {
+    my ($id, $rev) = @_;
+    my @elements;
+    if ($id and $rev ne 'history' and $rev ne 'edit') {
+        if ($CommentsPrefix) {
+            if ($id =~ /^$CommentsPrefix(.*)/o) {
+                push(@elements, GetPageLink($1, undef, 'original', T('a')));
+            } else {
+                push(@elements, GetPageLink($CommentsPrefix . $id, undef, 'comment', T('c')));
+            }
+        }
+        if (UserCanEdit($id, 0)) {
+            if ($rev) { # showing old revision
+                push(@elements, GetOldPageLink('edit', $id, $rev, Ts('Edit revision %s of this page', $rev)));
+            } else { # showing current revision
+                push(@elements, GetEditLink($id, T('Edit this page'), undef, undef));
+            }
+        } else { # no permission or generated page
+            push(@elements, ScriptLink('action=password', T('This page is read-only'), 'password'));
+        }
+    }
+    push(@elements, GetHistoryLink($id, T('View other revisions'))) if $Action{history} and $id and $rev ne 'history';
+    push(@elements, GetPageLink($id, T('View current revision')),
+         GetRCLink($id, T('View all changes'))) if $Action{history} and $rev ne '';
+    push(@elements, ScriptLink("action=contrib;id=" . UrlEncode($id), T('View contributors'), 'contrib'))
+        if $Action{contrib} and $id and $rev eq 'history';
+    if ($Action{admin} and GetParam('action', '') ne 'admin') {
+        my $action = 'action=admin';
+        $action .= ';id=' . UrlEncode($id) if $id;
+        push(@elements, ScriptLink($action, T('Administration'), 'admin'));
+    }
+    return @elements ? $q->span({-class=>'edit bar'}, $q->br(), join('', @elements)) : ''; # custom
+}
+
+
+#*OldGetCommentForm=*GetCommentForm;
+#*GetCommentForm=*NewGetCommentForm;
+sub GetCommentForm {
+    my ($id, $rev, $comment) = @_;
+    if ($CommentsPrefix ne '' and $id and $rev ne 'history' and $rev ne 'edit'
+        and $id =~ /^$CommentsPrefix/o and UserCanEdit($id, 0, 1)) {
+        return $q->div({-class=>'comment'},
+                       $q->start_multipart_form(-method=>'post', -action=>$FullUrl, -accept_charset=>'utf-8', -class=>'comment', -onsubmit=>'return disableFileUpload()'), #GetFormStart(undef, undef, 'comment'), # protected by questionasker
+                       $q->p(GetHiddenValue('title', $id),
+                             $id ne $AskPage ? $q->p({-class=>'comment'}, $q->label({-class=>'comment', -for=>'aftertext', -accesskey=>'c'}, $NewComment)) : '',
+                             GetTextArea('aftertext', $comment ? $comment : '', 10)), $EditNote,
+                       GetUploadForm(),
+                       $q->p($q->span({-class=>'username'},
+                                      $q->label({-for=>'username', -accesskey=>'u'}, T('Username:')), ' ',
+                                      $q->textfield(-name=>'username', -id=>'username',
+                                                    -default=>GetParam('username', ''),
+                                                    -override=>1, -size=>20, -maxlength=>50)),
+                             $q->span({-class=>'homepage'},
+                                      $q->label({-for=>'homepage'}, T('Homepage URL:')), ' ',
+                                      $q->textfield(-name=>'homepage', -id=>'homepage',
+                                                    -default=>GetParam('homepage', ''),
+                                                    -override=>1, -size=>40, -maxlength=>100))), ' ',
+                       $q->p($q->submit(-name=>'Save', -accesskey=>T('s'), -value=>T('Save')), ' ',
+                             $q->submit(-name=>'Preview', -accesskey=>T('p'), -value=>T('Preview'))),
+                       $q->endform());
+    }
+    return '';
+}
+
+sub PrintAllPages {
+  my ($links, $comments, $num, @pages) = @_;
+  my $lang = GetParam('lang', 0);
+  my ($i, $n) = 0;
+  for my $id (@pages) {
+    last if $n >= $JournalLimit and not UserIsAdmin() or $num and $n >= $num;
+    $i++; # pages looked at
+    local ($OpenPageName, %Page); # this is local!
+    OpenPage($id);
+    my @languages = split(/,/, $Page{languages});
+    next if $lang and @languages and not grep(/$lang/, @languages);
+    next if PageMarkedForDeletion();
+    next if substr($Page{text}, 0, 10) eq '#REDIRECT ';
+    print $q->start_div({-class=>'page'}),
+      $q->h1($links ? GetPageLink($id)
+             : $q->a({-name=>$id}, UrlEncode(FreeToNormal($id))));
+    PrintPageHtml();
+    print "$id";
+    print "$CommentsPrefix";
+    if ($comments and $id !~ /^$CommentsPrefix/o) {
+      print $q->p({-class=>'comment'},
+      GetPageLink('' . $id, # custom
+            T('Comments on this page')));
+    }
+    print $q->end_div();
+    $n++; # pages actually printed
+  }
+  return $i;
+}
+
+sub GetEditForm {
+    my ($page_name, $upload, $oldText, $revision) = @_;
+    my $html = GetFormStart(undef, undef, $upload ? 'edit upload' : 'edit text') # protected by questionasker
+        .$q->p(GetHiddenValue("title", $page_name), ($revision ? GetHiddenValue('revision', $revision) : ''),
+               GetHiddenValue('oldtime', $Page{ts}), ($upload ? GetUpload() : GetTextArea('text', $oldText))) . GetUploadForm();
+    my $summary = UnquoteHtml(GetParam('summary', ''))
+        || ($Now - $Page{ts} < ($SummaryHours * 3600) ? $Page{summary} : '');
+    $html .= $q->p(T('Summary:').$q->br().GetTextArea('summary', $summary, 2))
+        .$q->p($q->checkbox(-name=>'recent_edit', -checked=>(GetParam('recent_edit', '') eq 'on'),
+                            -label=>T('This change is a minor edit.')));
+    $html .= T($EditNote) if $EditNote; # Allow translation
+    my $username = GetParam('username', '');
+    $html .= $q->p($q->label({-for=>'username'}, T('Username:')).' '
+                   .$q->textfield(-name=>'username', -id=>'username', -default=>$username,
+                                  -override=>1, -size=>20, -maxlength=>50))
+        .$q->p($q->submit(-name=>'Save', -accesskey=>T('s'), -value=>T('Save')),
+               ($upload ? '' : ' ' . $q->submit(-name=>'Preview', -accesskey=>T('p'), -value=>T('Preview'))).
+               ' '.$q->submit(-name=>'Cancel', -value=>T('Cancel')));
+    if ($upload) {
+        $html .= $q->p(ScriptLink('action=edit;upload=0;id='.UrlEncode($page_name), T('Replace this file with text'),   'upload'));
+    }
+    elsif ($UploadAllowed or UserIsAdmin()) {
+        $html .= $q->p(ScriptLink('action=edit;upload=1;id='.UrlEncode($page_name), T('Replace this text with a file'), 'upload'));
+    }
+    $html .= $q->endform();
+    return $html;
+}
+
+sub GetUploadForm {
+    return $q->span({-class=>'upload'}, $q->label({-for=>'fileToUpload'}, T('Attach file:')),
+                    $q->filefield(-name=>'fileToUpload', -id=>'fileToUpload', -multiple=>'multiple', -onChange=>'fileSelected()', -size=>20),
+                    $q->span({-id=>'fileSize'}, ''),
+                    $q->button(-name=>'uploadButton', -value=>T('Upload'), -onClick=>'uploadFile()'),
+                    $q->span({-id=>'progressNumber'}));
+}
+
+push(@MyInitVariables, sub {
+    if (GetParam('action', 'browse') eq 'browse') {
+        my $id = GetId();
+        if ($id) {
+            OpenPage($id);
+            if (TextIsFile($Page{text}) or not UserCanEdit($id)) {
+                #$CommentsPrefix = 'Comments_on_';
+            } else {
+                $CommentsPrefix = '.*';
+            }
+        }
+    }
+     });

@@ -1,0 +1,9 @@
+Options -Indexes
+
+RewriteEngine On
+# If there's no query string, change the page name part into a query.
+RewriteCond %{QUERY_STRING} ^$
+RewriteRule ^([^/]+)$ /cgi-bin/wiki.pl/$1 [QSA,L]
+
+# Otherwise, do a plain redirect.
+RewriteRule ^$ cgi-bin/wiki.pl [QSA,L,PT]
