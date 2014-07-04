@@ -1,0 +1,3 @@
+<FilesMatch "\.(?i:html)$">
+  Header set Content-Disposition attachment
+</FilesMatch>
