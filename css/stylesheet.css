@@ -1,11 +1,11 @@
 @font-face {
     font-family: terminus1;
-    src: url(fonts/TerminusRe33-Bold.ttf);
+    src: url(../fonts/TerminusRe33-Bold.ttf);
 }
 
 @font-face {
     font-family: terminus2;
-    src: url(fonts/TerminusTTF-4.38.2.ttf);
+    src: url(../fonts/TerminusTTF-4.38.2.ttf);
 }
 
 body {
