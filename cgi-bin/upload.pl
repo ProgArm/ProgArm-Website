@@ -7,70 +7,54 @@ use File::Basename;
 $CGI::POST_MAX = 1024 * 100000;
 my $filenameWhitelist = "a-zA-Z0-9_.-";
 my @additionalChars = ('A'..'Z', 'a'..'z', '0'..'9');
-my $uploadDir = "../u";
+my $uploadDir = "../u/";
 my $logFile = "../upload.log";
 
-my $query = new CGI;
+my $q = new CGI;
 
-print $query->header();
-if (!$query->param("fileToUpload0")) {
-    print "Error: There was a problem uploading your file (try a smaller file).";
-    exit;
+if (!$q->param("fileToUpload0")) {
+  die 'Error: There was a problem uploading your file (try a smaller file)';
 }
 
-for (my $i=0; $query->param("fileToUpload$i"); $i++) {
-    if ($i >= 100) { # Uploading more than 100 files? What?
-        print "Error: Cannot upload more than 100 files at once";
-        exit;
-    }
+for (my $i=0; $q->param("fileToUpload$i"); $i++) {
+  if ($i >= 100) { # Uploading more than 100 files? What?
+    die 'Error: Cannot upload more than 100 files at once';
+  }
 
-    my $curFilename = substr $query->param("fileToUpload$i"), -100;
+  my $curFilename = substr $q->param("fileToUpload$i"), -100;
 
-    my($name, $path, $extension) = fileparse($curFilename, '\..*');
-    $name =~ tr/ /_/;
-    $name =~ s/[^$filenameWhitelist]//g;
-    $extension =~ tr/ /_/;
-    $extension =~ s/[^$filenameWhitelist]//g;
+  my($name, $path, $extension) = fileparse($curFilename, '\..*');
+  $name =~ tr/ /_/;
+  $name =~ s/[^$filenameWhitelist]//g;
+  $extension =~ tr/ /_/;
+  $extension =~ s/[^$filenameWhitelist]//g;
 
+  $curFilename = $name . $extension;
+
+  while (-e "$uploadDir/$curFilename") { # keep adding random characters until we get unique filename
+    die 'Error: Cannot save file with such filename' if length $curFilename >= 150; # cannot find available filename after so many attempts
+    $name .= $additionalChars[rand @additionalChars];
     $curFilename = $name . $extension;
+  }
 
-    while (-e "$uploadDir/$curFilename") {
-        if (length $curFilename >= 150) {
-            print "Error: Cannot save file";
-            exit;
-        }
-        $name .= $additionalChars[rand @additionalChars];
-        $curFilename = $name . $extension;
-    }
+  if ($curFilename =~ /^([$filenameWhitelist]+)$/) { # filename is already safe, but we have to untaint it
+    $curFilename = $1;
+  } else {
+    die 'Error: Filename contains invalid characters'; # this should not happen
+  }
 
-    if ($curFilename =~ /^([$filenameWhitelist]+)$/) { # data is already safe, but we have to untaint it
-        $curFilename = $1;
-    } else {
-        print "Error: Filename contains invalid characters";
-        exit;
-    }
+  open(LOGFILE, '>>', $logFile) or die "$!";
+  print LOGFILE $ENV{REMOTE_ADDR} . ' ' . $curFilename . "\n";
+  close LOGFILE;
 
-    my $rhost = $ENV{REMOTE_HOST}; # tests are written to avoid -w warnings.
-    if (not $rhost and $ENV{REMOTE_ADDR}) {
-        # Catch errors (including bad input) without aborting the script
-        eval 'use Socket; my $iaddr = inet_aton($ENV{REMOTE_ADDR});'
-            . '$rhost = gethostbyaddr($iaddr, AF_INET) if $iaddr;';
-    }
-    if (! $rhost) {
-        $rhost = $ENV{REMOTE_ADDR};
-    }
+  my $uploadFileHandle = $q->upload("fileToUpload$i");
 
-    open(LOGFILE, ">>", $logFile) or die "$!";
-    print LOGFILE $rhost . '; ' . $curFilename . "\n";
-    close LOGFILE;
-
-    my $uploadFileHandle = $query->upload("fileToUpload$i");
-
-    open(UPLOADFILE, ">", "$uploadDir/$curFilename") or die "$!";
-    binmode UPLOADFILE;
-    while (<$uploadFileHandle>) {
-        print UPLOADFILE;
-    }
-    close UPLOADFILE;
-    print "$curFilename\n"
+  open(UPLOADFILE, '>', "$uploadDir/$curFilename") or die "$!";
+  binmode UPLOADFILE;
+  while (<$uploadFileHandle>) {
+    print UPLOADFILE;
+  }
+  close UPLOADFILE;
+  print $q->header();
+  print "$curFilename\n"
 }
