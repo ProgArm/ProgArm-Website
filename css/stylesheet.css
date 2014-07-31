@@ -101,14 +101,14 @@ strong, th, h1, h2, h3, h4 {
     font-weight: normal;
 }
 
-h1:before {
+/*h1:before {
     content: "you@ProgArm:~/";
     font-size: 17px;
 }
 h1:after {
     content: "$";
     font-size: 17px;
-}
+}*/
 
 h3 {
     margin-top: 28px;
