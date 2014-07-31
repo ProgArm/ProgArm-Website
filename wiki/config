@@ -1,6 +1,7 @@
 use utf8;
-
 package OddMuse;
+
+$ENV{TZ} = 'UTC';
 $SiteName  = "ProgArm";
 
 use Digest::SHA qw(sha256_hex);
