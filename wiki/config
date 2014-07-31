@@ -19,6 +19,8 @@ $RCName = 'Recent Changes';
 @UserGotoBarPages = ($HomePage, $AskPage, $RCName);
 $SurgeProtectionViews = 20;
 
+$GitMail = 'anybody@progarm.org';
+
 $Translate{'Journal'} = ' ';
 
 $FullUrl = ($ENV{'HTTPS'} ? 'https' : 'http') . '://progarm.org';
