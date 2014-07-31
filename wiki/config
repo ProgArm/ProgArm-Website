@@ -196,8 +196,6 @@ sub PrintAllPages {
       $q->h1($links ? GetPageLink($id)
              : $q->a({-name=>$id}, UrlEncode(FreeToNormal($id))));
     PrintPageHtml();
-    print "$id";
-    print "$CommentsPrefix";
     if ($comments and $id !~ /^$CommentsPrefix/o) {
       print $q->p({-class=>'comment'},
       GetPageLink('' . $id, # custom
