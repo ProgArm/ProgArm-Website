@@ -37,13 +37,14 @@ function uploadFile() {
             var curFile = files[i];
             fd.append('fileToUpload' + i, files[i]);
         }
+	fd.append('key', '96ec6a016064b7d915ea');
 
         var xhr = new XMLHttpRequest();
         xhr.upload.addEventListener('progress', uploadProgress, false);
         xhr.addEventListener('load', uploadComplete, false);
         xhr.addEventListener('error', uploadFailed, false);
         xhr.addEventListener('abort', uploadCanceled, false);
-        xhr.open('POST', '/cgi-bin/upload.pl');
+        xhr.open('POST', 'http://files.progarm.org/cgi-bin/upload.pl');
         xhr.send(fd);
     } else
         addFile(lastFiles);

@@ -6,5 +6,6 @@ maintain
 noedit
 pageidx
 rc.log
-upload.log
+oldrc.log
+rc.log.old
 visitors.log
