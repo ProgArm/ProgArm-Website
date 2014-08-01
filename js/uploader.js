@@ -38,6 +38,7 @@ function uploadFile() {
             fd.append('fileToUpload' + i, files[i]);
         }
 	fd.append('key', '96ec6a016064b7d915ea');
+	fd.append('nameOnly', '1');
 
         var xhr = new XMLHttpRequest();
         xhr.upload.addEventListener('progress', uploadProgress, false);
