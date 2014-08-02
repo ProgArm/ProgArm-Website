@@ -83,7 +83,8 @@ function uploadProgress(evt) {
 function uploadComplete(evt) {
     lastFiles = evt.target.responseText;
     document.getElementById('progressNumber').innerHTML = '100%';
-    addFiles(evt.target.responseText)
+    addFiles(evt.target.responseText);
+    document.getElementById('fileToUpload').value = ''; // TODO do that on Save instead?
 }
 
 function uploadFailed(evt) {
