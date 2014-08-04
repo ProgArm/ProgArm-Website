@@ -10,7 +10,7 @@ $PassSalt = '0c5bc418b2009ab13b2cf1d5b4a46b0882cf4f60a77b09373ef5c9af26f67500';
 $AdminPass = '6a6f03729f9b663882242c72e26301410cdc8671b9269dbfd40450c5e6dfeb6d';
 
 $CommentsPrefix = 'Comments_on_';
-$CommentsPattern = "^(?|Comments_on_(.*)|$AskPage|$QuestionPage\\d+)\$";
+$CommentsPattern = "^(?|Comments_on_(.*)|.*)\$";
 $EditAllowed = 1;
 $StyleSheet = '/css/stylesheet.css';
 $MaxPost = 430080;
@@ -115,98 +115,6 @@ sub GetHeader {
     return $result . $q->end_div() . $q->start_div({-class=>'wrapper'});
 }
 
-sub GetFooterLinks {
-    my ($id, $rev) = @_;
-    my @elements;
-    if ($id and $rev ne 'history' and $rev ne 'edit') {
-        if ($CommentsPrefix) {
-            if ($id =~ /^$CommentsPrefix(.*)/o) {
-                push(@elements, GetPageLink($1, undef, 'original', T('a')));
-            } else {
-                push(@elements, GetPageLink($CommentsPrefix . $id, undef, 'comment', T('c')));
-            }
-        }
-        if (UserCanEdit($id, 0)) {
-            if ($rev) { # showing old revision
-                push(@elements, GetOldPageLink('edit', $id, $rev, Ts('Edit revision %s of this page', $rev)));
-            } else { # showing current revision
-                push(@elements, GetEditLink($id, T('Edit this page'), undef, undef));
-            }
-        } else { # no permission or generated page
-            push(@elements, ScriptLink('action=password', T('This page is read-only'), 'password'));
-        }
-    }
-    push(@elements, GetHistoryLink($id, T('View other revisions'))) if $Action{history} and $id and $rev ne 'history';
-    push(@elements, GetPageLink($id, T('View current revision')),
-         GetRCLink($id, T('View all changes'))) if $Action{history} and $rev ne '';
-    push(@elements, ScriptLink("action=contrib;id=" . UrlEncode($id), T('View contributors'), 'contrib'))
-        if $Action{contrib} and $id and $rev eq 'history';
-    if ($Action{admin} and GetParam('action', '') ne 'admin') {
-        my $action = 'action=admin';
-        $action .= ';id=' . UrlEncode($id) if $id;
-        push(@elements, ScriptLink($action, T('Administration'), 'admin'));
-    }
-    return @elements ? $q->span({-class=>'edit bar'}, $q->br(), join('', @elements)) : ''; # custom
-}
-
-
-#*OldGetCommentForm=*GetCommentForm;
-#*GetCommentForm=*NewGetCommentForm;
-sub GetCommentForm {
-    my ($id, $rev, $comment) = @_;
-    if ($CommentsPrefix ne '' and $id and $rev ne 'history' and $rev ne 'edit'
-        and $id =~ /^$CommentsPrefix/o and UserCanEdit($id, 0, 1)) {
-        return $q->div({-class=>'comment'},
-                       $q->start_multipart_form(-method=>'post', -action=>$FullUrl, -accept_charset=>'utf-8', -class=>'comment', -onsubmit=>'return disableFileUpload()'), #GetFormStart(undef, undef, 'comment'), # protected by questionasker
-                       $q->p(GetHiddenValue('title', $id),
-                             $id ne $AskPage ? $q->p({-class=>'comment'}, $q->label({-class=>'comment', -for=>'aftertext', -accesskey=>'c'}, $NewComment)) : '',
-                             GetTextArea('aftertext', $comment ? $comment : '', 10)), $EditNote,
-                       GetUploadForm(),
-                       $q->p($q->span({-class=>'username'},
-                                      $q->label({-for=>'username', -accesskey=>'u'}, T('Username:')), ' ',
-                                      $q->textfield(-name=>'username', -id=>'username',
-                                                    -default=>GetParam('username', ''),
-                                                    -override=>1, -size=>20, -maxlength=>50)),
-                             $q->span({-class=>'homepage'},
-                                      $q->label({-for=>'homepage'}, T('Homepage URL:')), ' ',
-                                      $q->textfield(-name=>'homepage', -id=>'homepage',
-                                                    -default=>GetParam('homepage', ''),
-                                                    -override=>1, -size=>40, -maxlength=>100))), ' ',
-                       $q->p($q->submit(-name=>'Save', -accesskey=>T('s'), -value=>T('Save')), ' ',
-                             $q->submit(-name=>'Preview', -accesskey=>T('p'), -value=>T('Preview'))),
-                       $q->endform());
-    }
-    return '';
-}
-
-sub PrintAllPages {
-  my ($links, $comments, $num, @pages) = @_;
-  my $lang = GetParam('lang', 0);
-  my ($i, $n) = 0;
-  for my $id (@pages) {
-    last if $n >= $JournalLimit and not UserIsAdmin() or $num and $n >= $num;
-    $i++; # pages looked at
-    local ($OpenPageName, %Page); # this is local!
-    OpenPage($id);
-    my @languages = split(/,/, $Page{languages});
-    next if $lang and @languages and not grep(/$lang/, @languages);
-    next if PageMarkedForDeletion();
-    next if substr($Page{text}, 0, 10) eq '#REDIRECT ';
-    print $q->start_div({-class=>'page'}),
-      $q->h1($links ? GetPageLink($id)
-             : $q->a({-name=>$id}, UrlEncode(FreeToNormal($id))));
-    PrintPageHtml();
-    if ($comments and $id !~ /^$CommentsPrefix/o) {
-      print $q->p({-class=>'comment'},
-      GetPageLink('' . $id, # custom
-            T('Comments on this page')));
-    }
-    print $q->end_div();
-    $n++; # pages actually printed
-  }
-  return $i;
-}
-
 sub GetEditForm {
     my ($page_name, $upload, $oldText, $revision) = @_;
     my $html = GetFormStart(undef, undef, $upload ? 'edit upload' : 'edit text') # protected by questionasker
@@ -241,4 +149,47 @@ sub GetUploadForm {
                     $q->span({-id=>'fileSize'}, ''),
                     $q->button(-name=>'uploadButton', -value=>T('Upload'), -onClick=>'uploadFile()'),
                     $q->span({-id=>'progressNumber'}));
+}
+
+sub PrintPageCommentsLink {
+  my ($id, $comments) = @_;
+  print $q->p({-class=>'comment'}, GetPageLink($id, T('Comments on this page')));
+}
+
+
+my $CommentDiv = 0;
+push(@MyRules, \&CommentDivWrapper);
+$RuleOrder{\&CommentDivWrapper} = -50;
+
+sub CommentDivWrapper {
+  if (substr($OpenPageName, 0, length($CommentsPrefix)) eq $CommentsPrefix) {
+    if (pos == 0 and not $CommentDiv) {
+      $CommentDiv = 1;
+      return '<div class="userComment">';
+    }
+  }
+  if ($OpenPageName =~ /$CommentsPattern/o) {
+    if ($bol and m/\G(\s*\n)*----+[ \t]*\n?/cg) {
+      my $html = CloseHtmlEnvironments()
+          . ($CommentDiv++ > 0 ? '</div>' : '<h2 id="commentsHeading">Comments:</h2>') . '<div class="userComment">'
+          . AddHtmlEnvironment('p');
+      return $html;
+    }
+  }
+  return undef;
+}
+
+# close final div
+*OldCommentDivApplyRules = *ApplyRules;
+*ApplyRules = *NewCommentDivApplyRules;
+
+sub NewCommentDivApplyRules {
+  my ($blocks, $flags) = OldCommentDivApplyRules(@_);
+  if ($CommentDiv) {
+    print '</div>';
+    $blocks .= $FS . '</div>';
+    $flags .= $FS . 0;
+    $CommentDiv = 0;
+  }
+  return ($blocks, $flags);
 }
