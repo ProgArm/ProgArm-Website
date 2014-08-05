@@ -463,7 +463,7 @@ sub CreoleListAndNewLineRule {
     # "return CloseHtmlEnvironmentUntil('li')", as that line does not permit
     # modules overriding the CloseHtmlEnvironments() function to "have a say."
     return ($is_in_list_item ? CloseHtmlEnvironmentUntil('li') : CloseHtmlEnvironments())
-      .OpenHtmlEnvironment(substr($1, 0, 1) eq '#' ? 'ol' : 'ul', length($1))
+      .OpenHtmlEnvironment(substr($1, 0, 1) eq '#' ? 'ol' : 'ul', length($1), '', 'ol|ul')
       .AddHtmlEnvironment('li');
   }
   # - bullet list (not nestable; always needs space)
