@@ -9,8 +9,8 @@
 }
 
 body {
-    background-color: #000000;
-    color: #777777;
+    background-color: #151515;
+    color: #B0B0B0;
     font-family: terminus1;
 /*    font-family: Arial,Helvetica,sans-serif; */
     margin: 12px 0px;
@@ -62,7 +62,7 @@ span.accesskey {
 }
 
 a {
-    color: #008A50; /* #999999; */
+    color: #6A9FB5; /* #999999; */
     text-decoration: none;
     font-family: terminus1, terminus2;
 /*    font-family: "Lucida Console", Monaco, monospace;*/
@@ -137,7 +137,7 @@ h3 {
 
 .header>.gotobar>a:hover {
     text-decoration: none;
-    outline: #777777 solid 1px;
+    outline: #B0B0B0 solid 1px;
 } 
 
 .local {
@@ -145,7 +145,7 @@ h3 {
 }
 
 input, textarea { 
-    color: #777777;
+    color: #B0B0B0;
     background-color: #111111;
     border-style: solid;
     border-color: #888888;
@@ -179,7 +179,7 @@ table.user {
 }
 
 table.user tr td {
-    border: 1px solid #777777;
+    border: 1px solid #B0B0B0;
     padding: 3px;
     margin: 0px;
 }
@@ -220,7 +220,7 @@ code {
 }
 
 div.page {
-    background-color: #0B0B0B;
+    background-color: #202020;
     border-color: #BBBBBB;
     border-radius: 1px;
     padding: 10px;
@@ -249,7 +249,7 @@ div.page>.userComment, div.page>#commentsHeading {
 }
 
 .userComment {
-    background-color: #080808;
+    background-color: #202020;
     padding-left: 15px;
     padding-right: 15px;
     margin-top: 35px;
