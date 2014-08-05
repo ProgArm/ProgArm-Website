@@ -209,6 +209,10 @@ div.page p.comment {
     display:none;
 }
 
+strong {
+    text-shadow:-1px 0px 0px;
+}
+
 code {
     font-size: 16px;
     font-family: terminus1;
