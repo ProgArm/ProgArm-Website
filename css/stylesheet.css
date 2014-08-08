@@ -279,3 +279,7 @@ div.page>.userComment, div.page>#commentsHeading {
 .logo {
     display: inline;
 }
+
+img {
+    max-width: 100%;
+}
