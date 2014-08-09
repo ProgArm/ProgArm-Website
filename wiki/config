@@ -73,46 +73,11 @@ sub GetSearchForm {
         $q->endform;
 }
 
-sub GetHeader {
-    my ($id, $title, $oldId, $nocache, $status) = @_;
-    my $embed = GetParam('embed', $EmbedWiki);
-    my $alt = T('[Home]');
-    my $result = GetHttpHeader('text/html', $nocache, $status);
-    if ($oldId) {
-        $Message .= $q->p('(' . Ts('redirected from %s', GetEditLink($oldId, $oldId)) . ')');
-    }
-    $result .= GetHtmlHeader(Ts('%s: ', $SiteName) . UnWiki($title), $id);
-    if ($embed) {
-        $result .= $q->div({-class=>'header'}, $q->div({-class=>'message'}, $Message))  if $Message;
-        return $result;
-    }
-    $result .= $q->start_div({-class=>'header'});
-    if (not $embed and $LogoUrl) {
-        my $url = $IndexHash{$LogoUrl} ? GetDownloadLink($LogoUrl, 2) : $LogoUrl;
-        $result .= ScriptLink(UrlEncode($HomePage),
-                              $q->img({-src=>$url, -alt=>$alt, -class=>'logo'}), 'logo');
-    }
-    if (GetParam('toplinkbar', $TopLinkBar)) {
-        $result .= GetGotoBar($id);
-        if (%SpecialDays) {
-            my ($sec, $min, $hour, $mday, $mon, $year) = gmtime($Now);
-            if ($SpecialDays{($mon + 1) . '-' . $mday}) {
-                $result .= $q->br() . $q->span({-class=>'specialdays'},
-                                               $SpecialDays{($mon + 1) . '-' . $mday});
-            }
-        }
-    }
-    $result .= $q->div({-class=>'message'}, $Message)  if $Message;
-    if ($id ne '') {
-        if (UserCanEdit($id, 0) and $id ne $AskPage) { # custom
-            $result .= $q->h1(GetEditLink($id, T('Edit this page'), undef, T('e')) . GetSearchLink($id, '', '', T('Click to search for references to this page')));
-        } else {
-            $result .= $q->h1(GetSearchLink($id, '', '', T('Click to search for references to this page')));
-        }
-    } else {
-        $result .= $q->h1($title);
-    }
-    return $result . $q->end_div() . $q->start_div({-class=>'wrapper'});
+sub GetHeaderTitle {
+  my ($id, $title, $oldId) = @_;
+  return $q->h1($title) if $id eq '';
+  return $q->h1(((UserCanEdit($id, 0) and $id ne $AskPage) ? GetEditLink($id, T('Edit this page'), undef, T('e')) : '') .
+		GetSearchLink($id, '', '', T('Click to search for references to this page')));
 }
 
 sub GetEditForm {
