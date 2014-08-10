@@ -30,25 +30,7 @@ $CreoleLineBreaks = 1;
 $CreoleTableCellsAllowBlockLevelElements = 1;
 $CreoleDashStyleUnorderedLists = 1;
 
-$HtmlHeaders = '<script type="text/javascript" src="/js/uploader.js"></script><script type="text/javascript" src="/js/underlineAccesskeys.js"></script>';
-
-push(@MyRules, \&MyLinksWithAccessKey);
-sub MyLinksWithAccessKey {
-  if (m/\G(\[\[$FreeLinkPattern\{(.)\}\]\])/cog) {
-    my ($id, $key) = ($2, $3);
-    Dirty($1);
-    $id = FreeToNormal($id);
-    my ($class, $resolved, $title, $exists) = ResolveId($id);
-    my $text = NormalToFree($id);
-    if ($resolved) { # anchors don't exist as pages, therefore do not use $exists
-      print ScriptLink(UrlEncode($resolved), $text, $class, undef, $title, $key);
-    } else {
-      print "[[" . QuoteHtml($text) . GetEditLink($id, '?') . "]]";
-    }
-    return ''; # this is a dirty rule that depends the definition of other pages
-  }
-  return undef; # the rule didn't match
-}
+$HtmlHeaders .= '<script type="text/javascript" src="/js/underlineAccesskeys.js"></script>';
 
 $Translate{'Search:'} = ' ';
 $Translate{'Go!'} = 'Search';
@@ -80,81 +62,7 @@ sub GetHeaderTitle {
 		GetSearchLink($id, '', '', T('Click to search for references to this page')));
 }
 
-sub GetEditForm {
-    my ($page_name, $upload, $oldText, $revision) = @_;
-    my $html = GetFormStart(undef, undef, $upload ? 'edit upload' : 'edit text') # protected by questionasker
-        .$q->p(GetHiddenValue("title", $page_name), ($revision ? GetHiddenValue('revision', $revision) : ''),
-               GetHiddenValue('oldtime', $Page{ts}), ($upload ? GetUpload() : GetTextArea('text', $oldText))) . GetUploadForm();
-    my $summary = UnquoteHtml(GetParam('summary', ''))
-        || ($Now - $Page{ts} < ($SummaryHours * 3600) ? $Page{summary} : '');
-    $html .= $q->p(T('Summary:').$q->br().GetTextArea('summary', $summary, 2))
-        .$q->p($q->checkbox(-name=>'recent_edit', -checked=>(GetParam('recent_edit', '') eq 'on'),
-                            -label=>T('This change is a minor edit.')));
-    $html .= T($EditNote) if $EditNote; # Allow translation
-    my $username = GetParam('username', '');
-    $html .= $q->p($q->label({-for=>'username'}, T('Username:')).' '
-                   .$q->textfield(-name=>'username', -id=>'username', -default=>$username,
-                                  -override=>1, -size=>20, -maxlength=>50))
-        .$q->p($q->submit(-name=>'Save', -accesskey=>T('s'), -value=>T('Save')),
-               ($upload ? '' : ' ' . $q->submit(-name=>'Preview', -accesskey=>T('p'), -value=>T('Preview'))).
-               ' '.$q->submit(-name=>'Cancel', -value=>T('Cancel')));
-    if ($upload) {
-        $html .= $q->p(ScriptLink('action=edit;upload=0;id='.UrlEncode($page_name), T('Replace this file with text'),   'upload'));
-    }
-    elsif ($UploadAllowed or UserIsAdmin()) {
-        $html .= $q->p(ScriptLink('action=edit;upload=1;id='.UrlEncode($page_name), T('Replace this text with a file'), 'upload'));
-    }
-    $html .= $q->endform();
-    return $html;
-}
-
-sub GetUploadForm {
-    return $q->span({-class=>'upload'}, $q->label({-for=>'fileToUpload'}, T('Attach file:')),
-                    $q->filefield(-name=>'fileToUpload', -id=>'fileToUpload', -multiple=>'multiple', -onChange=>'fileSelected()', -size=>20),
-                    $q->span({-id=>'fileSize'}, ''),
-                    $q->button(-name=>'uploadButton', -value=>T('Upload'), -onClick=>'uploadFile()'),
-                    $q->span({-id=>'progressNumber'}));
-}
-
 sub PrintPageCommentsLink {
   my ($id, $comments) = @_;
   print $q->p({-class=>'comment'}, GetPageLink($id, T('Comments on this page')));
-}
-
-
-my $CommentDiv = 0;
-push(@MyRules, \&CommentDivWrapper);
-$RuleOrder{\&CommentDivWrapper} = -50;
-
-sub CommentDivWrapper {
-  if (substr($OpenPageName, 0, length($CommentsPrefix)) eq $CommentsPrefix) {
-    if (pos == 0 and not $CommentDiv) {
-      $CommentDiv = 1;
-      return '<div class="userComment">';
-    }
-  }
-  if ($OpenPageName =~ /$CommentsPattern/o) {
-    if ($bol and m/\G(\s*\n)*----+[ \t]*\n?/cg) {
-      my $html = CloseHtmlEnvironments()
-          . ($CommentDiv++ > 0 ? '</div>' : '<h2 id="commentsHeading">Comments:</h2>') . '<div class="userComment">'
-          . AddHtmlEnvironment('p');
-      return $html;
-    }
-  }
-  return undef;
-}
-
-# close final div
-*OldCommentDivApplyRules = *ApplyRules;
-*ApplyRules = *NewCommentDivApplyRules;
-
-sub NewCommentDivApplyRules {
-  my ($blocks, $flags) = OldCommentDivApplyRules(@_);
-  if ($CommentDiv) {
-    print '</div>';
-    $blocks .= $FS . '</div>';
-    $flags .= $FS . 0;
-    $CommentDiv = 0;
-  }
-  return ($blocks, $flags);
 }
