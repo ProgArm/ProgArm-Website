@@ -206,11 +206,11 @@ div.page p.comment {
 }
 
 .footer>form.search, div.footer span.gotobar, div.footer span.edit>br {
-    display:none;
+    display: none;
 }
 
 strong {
-    text-shadow:-1px 0px 0px;
+    text-shadow: -1px 0px 0px;
 }
 
 code {
@@ -255,6 +255,8 @@ div.page p.comment:after {
 div.page>.userComment, div.page>#commentsHeading {
     visibility: hidden;
     position: absolute;
+    top: -9999px;
+    left: -9999px;
 }
 
 #commentsHeading {
