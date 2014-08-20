@@ -285,3 +285,11 @@ div.page>.userComment, div.page>#commentsHeading {
 img {
     max-width: 100%;
 }
+
+.old, .diffactionold {
+    background-color: #371111;
+}
+
+.new, .diffactionnew {
+    background-color: #113711;
+}
