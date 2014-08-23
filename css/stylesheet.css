@@ -286,10 +286,10 @@ img {
     max-width: 100%;
 }
 
-.old, .diffactionold {
+.old, .diffactionold, .updaterold {
     background-color: #371111;
 }
 
-.new, .diffactionnew {
+.new, .diffactionnew, .updaternew {
     background-color: #113711;
 }
