@@ -16,7 +16,7 @@
 #    59 Temple Place, Suite 330
 #    Boston, MA 02111-1307 USA
 
-$ModulesDescription .= '<p>$Id: despam.pl,v 1.15 2007/11/16 01:42:55 as Exp $</p>';
+AddModuleDescription('despam.pl', 'Despam Extension');
 
 push(@MyAdminCode, \&DespamMenu);
 
@@ -91,14 +91,14 @@ sub DespamBannedContent {
     foreach my $url (@urls) {
       if ($url =~ /($regexp)/i) {
 	return Tss('Rule "%1" matched "%2" on this page.',
-		   QuoteHtml($regexp), $url);
+		   QuoteHtml($regexp), QuoteHtml($url));
       }
     }
   }
   # depends on strange-spam.pl!
   foreach (@DespamStrangeRules) {
     my $regexp = $_;
-    if ($str =~ /($regexp)/) {
+    if ($str =~ /($regexp)/i) {
       my $match = $1;
       $match =~ s/\n/ /g;
       return Tss('Rule "%1" matched "%2" on this page.',

@@ -14,7 +14,7 @@ directory for your Oddmuse Wiki.
 =cut
 package OddMuse;
 
-$ModulesDescription .= '<p><a href="http://git.savannah.gnu.org/cgit/oddmuse.git/tree/modules/creole.pl">creole.pl</a>, see <a href="http://www.oddmuse.org/cgi-bin/oddmuse/Creole_Markup_Extension">Creole Markup Extension</a></p>';
+AddModuleDescription('creole.pl', 'Creole Markup Extension');
 
 # ....................{ CONFIGURATION                      }....................
 
@@ -458,7 +458,8 @@ sub CreoleListAndNewLineRule {
   # # numbered list
   # * bullet list (nestable; needs space when nested to disambiguate from bold)
   if (($bol             and m/\G[ \t]*([#*])[ \t]*/cg) or
-      ($is_in_list_item and m/\G[ \t]*\n+[ \t]*(([#*])\2+)[ \t]*/cg)) {
+      ($is_in_list_item and m/\G[ \t]*\n+[ \t]*(#+)[ \t]*/cg) or 
+      ($is_in_list_item and m/\G[ \t]*\n+[ \t]*(\*+)[ \t]+/cg)) {
     # Note: the first line of this return statement is --not-- equivalent to:
     # "return CloseHtmlEnvironmentUntil('li')", as that line does not permit
     # modules overriding the CloseHtmlEnvironments() function to "have a say."
