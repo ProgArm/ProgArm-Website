@@ -1782,7 +1782,7 @@ sub RcHtml {
   ProcessRcLines($printDailyTear, $printRCLine);
   $html .= '</ul>' if $inlist;
   # use delta between from and upto, or use days, whichever is available
-  my $to = GetParam('from', GetParam('upto', $Now - GetParam('days') * 86400));
+  my $to = GetParam('from', GetParam('upto', $Now - GetParam('days', $RcDefault) * 86400));
   my $from = $to - (GetParam('upto') ? GetParam('upto') - GetParam('from') : GetParam('days', $RcDefault) * 86400);
   my $more = "action=rc;from=$from;upto=$to";
   foreach (qw(all showedit rollback rcidonly rcuseronly rchostonly
@@ -3929,6 +3929,13 @@ sub WriteRecentVisitors {
 }
 
 sub TextIsFile { $_[0] =~ /^#FILE (\S+) ?(\S+)?\n/ }
+
+sub AddModuleDescription {
+  my ($filename, $name) = @_;
+  $ModulesDescription .= '<p><a href="http://git.savannah.gnu.org/cgit/oddmuse.git/tree/modules/' . UrlEncode($filename) . '">' . QuoteHtml($filename);
+  $ModulesDescription .= '</a>, see <a href="http://www.oddmuse.org/cgi-bin/oddmuse/' . UrlEncode(FreeToNormal($name)) . '">' . QuoteHtml($name) if $name;
+  $ModulesDescription .= '</a></p>';
+}
 
 DoWikiRequest() if $RunCGI and not exists $ENV{MOD_PERL}; # Do everything.
 1; # In case we are loaded from elsewhere
