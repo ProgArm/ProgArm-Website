@@ -293,3 +293,8 @@ img {
 .new, .diffactionnew, .updaternew {
     background-color: #113711;
 }
+
+#aftertext {
+    width: 570px;
+    height: 175px;
+}
