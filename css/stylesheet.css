@@ -298,3 +298,16 @@ img {
     width: 570px;
     height: 175px;
 }
+
+.left {
+    float:left;
+}
+
+.right {
+    float:right;
+}
+
+.right img {
+    width: 300px;
+    padding: 20px;
+}
