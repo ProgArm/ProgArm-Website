@@ -218,7 +218,7 @@ code {
     font-family: terminus1;
 }
 
-code, .real {
+.real {
     font-size: 14px;
     display: inline-block;
     background: #303030;
