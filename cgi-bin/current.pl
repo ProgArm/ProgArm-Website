@@ -1151,7 +1151,7 @@ sub GetPageOrEditLink { # use GetPageLink and GetEditLink if you know the result
   } else {      # reproduce markup if $UseQuestionmark
     return GetEditLink($id, UnquoteHtml($bracket ? "[$link]" : $link)) unless $UseQuestionmark;
     $link = QuoteHtml($id) . GetEditLink($id, '?');
-    $link .= ($free ? '|' : ' ') . $text if $text and $text ne $id;
+    $link .= ($free ? '|' : ' ') . $text if $text and $text ne NormalToFree($id);
     $link = "[[$link]]" if $free;
     $link = "[$link]" if $bracket or not $free and $text;
     return $link;
@@ -1631,7 +1631,7 @@ sub RcHeader {
   } else {
     $html .= $q->h2((GetParam('days', $RcDefault) != 1)
 		    ? Ts('Updates in the last %s days', $days)
-		    : Ts('Updates in the last %s day',  $days));
+		    : Ts('Updates in the last day'));
   }
   my $action = '';
   my ($idOnly, $userOnly, $hostOnly, $clusterOnly, $filterOnly,
@@ -3702,6 +3702,7 @@ sub MergeRevisions {   # merge change from file2 to file3 into file1
   WriteStringToFile($name3, $file3);
   my ($you, $ancestor, $other) = (T('you'), T('ancestor'), T('other'));
   my $output = `diff3 -m -L \Q$you\E -L \Q$ancestor\E -L \Q$other\E -- \Q$name1\E \Q$name2\E \Q$name3\E`;
+  utf8::decode($output); # needs decoding
   ReleaseLockDir('merge'); # don't unlink temp files--next merge will just overwrite.
   return $output;
 }
@@ -3930,11 +3931,13 @@ sub WriteRecentVisitors {
 
 sub TextIsFile { $_[0] =~ /^#FILE (\S+) ?(\S+)?\n/ }
 
-sub AddModuleDescription {
-  my ($filename, $name) = @_;
-  $ModulesDescription .= '<p><a href="http://git.savannah.gnu.org/cgit/oddmuse.git/tree/modules/' . UrlEncode($filename) . '">' . QuoteHtml($filename);
-  $ModulesDescription .= '</a>, see <a href="http://www.oddmuse.org/cgi-bin/oddmuse/' . UrlEncode(FreeToNormal($name)) . '">' . QuoteHtml($name) if $name;
-  $ModulesDescription .= '</a></p>';
+sub AddModuleDescription { # cannot use $q here because this is module init time
+  my ($filename, $page, $dir, $tag) = @_;
+  my $src = "http://git.savannah.gnu.org/cgit/oddmuse.git/tree/modules/$dir" . UrlEncode($filename) . ($tag ? '?' . $tag : '');
+  my $doc = 'http://www.oddmuse.org/cgi-bin/oddmuse/' . UrlEncode(FreeToNormal($page));
+  $ModulesDescription .= "<p><a href=\"$src\">" . QuoteHtml($filename) . "</a>" . ($tag ? " ($tag)" : '');
+  $ModulesDescription .= T(', see ') . "<a href=\"$doc\">" . QuoteHtml($page) . "</a>" if $page;
+  $ModulesDescription .= "</p>";
 }
 
 DoWikiRequest() if $RunCGI and not exists $ENV{MOD_PERL}; # Do everything.
