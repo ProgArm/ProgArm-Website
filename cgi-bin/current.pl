@@ -1151,7 +1151,7 @@ sub GetPageOrEditLink { # use GetPageLink and GetEditLink if you know the result
   } else {      # reproduce markup if $UseQuestionmark
     return GetEditLink($id, UnquoteHtml($bracket ? "[$link]" : $link)) unless $UseQuestionmark;
     $link = QuoteHtml($id) . GetEditLink($id, '?');
-    $link .= ($free ? '|' : ' ') . $text if $text and $text ne NormalToFree($id);
+    $link .= ($free ? '|' : ' ') . $text if $text and FreeToNormal($text) ne $id;
     $link = "[[$link]]" if $free;
     $link = "[$link]" if $bracket or not $free and $text;
     return $link;
@@ -2081,7 +2081,7 @@ sub DoRollback {
   WriteRcLog('[[rollback]]', $page, $to); # leave marker
   print $q->end_p() . $q->end_div();
   ReleaseLock();
-  PrintFooter($page);
+  PrintFooter($page, 'edit');
 }
 
 sub DoAdminPage {
