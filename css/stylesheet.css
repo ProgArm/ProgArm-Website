@@ -308,6 +308,6 @@ img {
 }
 
 .right img {
-    width: 300px;
+    max-width: 300px;
     padding: 20px;
 }
