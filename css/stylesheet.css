@@ -132,19 +132,18 @@ h3 {
 /*    margin-top: 0px !important;
     margin-bottom: 0px !important; */
     margin: 5px;
-    
 }
 
 .header>.gotobar>a:hover {
     text-decoration: none;
     outline: #B0B0B0 solid 1px;
-} 
+}
 
 .local {
     height: 100%;
 }
 
-input, textarea { 
+input, textarea {
     color: #B0B0B0;
     background-color: #111111;
     border-style: solid;
