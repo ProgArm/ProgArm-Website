@@ -34,6 +34,7 @@ sub tostring (&) { # catch stdout of a sub into a string
   $s
 }
 
+# TODO fix gotobar extension/move this to config.pl/create another module
 sub GotobarInit {
     $GotobarName = FreeToNormal($GotobarName); # spaces to underscores
     $AdminPages{$GotobarName} = 1;
@@ -44,7 +45,7 @@ sub GotobarInit {
         # links for unsuspecting users.
         @UserGotoBarPages = ();
         $UserGotoBar = '';
-        $UserGotoBar .= GetSearchForm();
+        $UserGotoBar .= GetSearchForm(); # TODO it does not produce valid html?
 
         $_ = $Page{text};
         while ($_) {

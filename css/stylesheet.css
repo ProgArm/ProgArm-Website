@@ -188,7 +188,7 @@ table.user tr td {
 }
 
 a.number {
-    font-size: 60%;
+    font-size: 60%; /* fix px and % mess */
     vertical-align: top;
 }
 
