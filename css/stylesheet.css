@@ -337,3 +337,37 @@ img {
     background-color: #371111;
     padding: 3px;
 }
+
+.imageholder {
+    display: inline-block;
+    /*width: auto;*/
+}
+
+.imagecomment {
+    text-align: center;
+    font-size: 1.5vw;
+    border-style: solid;
+    border-color: #880000;
+    border-width: 3px;
+    color: rgba(0,0,0,0);
+}
+
+.component {
+    border-color: #000088;
+}
+
+.switch {
+    border-color: #880000;
+}
+
+.port {
+    border-color: #00CC44;
+}
+
+.imagecomment:hover {
+    color: #EEEEFF;
+    text-shadow: 2px 0px #000000, -2px -0px #000000, 0px 2px #000000, 0px -2px #000000, -2px -2px #000000, 2px 2px #000000, -2px 2px #000000, 2px -2px #000000;
+    /*display: inline-block !important;*/
+    /*width: auto !important;*/
+    border-style: none;
+}
