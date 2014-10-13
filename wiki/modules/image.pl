@@ -66,19 +66,20 @@ sub ImageSupportRule {
     }
     if ($found) {
       $result = '';
-      $result .= '<div class="holder" style="position: relative">' if $comments;
+      $result .= '<div class="imageholder" style="position: relative">' if $comments; # TODO refactoring
       $result .= $q->img({-src=>$src, -alt=>$alt, -title=>$alt, -class=>'upload'});
       $result = $q->a({-href=>$link, -class=>$linkclass}, $result);
       if ($comments) {
 	for (split '\n', $comments) {
 	  #my ($x, $y, $width, $height, $text) = split /\s+/, $_, 5;
-	  my $valRegex = qr/(([0-9]+[a-z]*%?)\s+)/;
-	  if ($_ =~ /^\s*$valRegex$valRegex$valRegex$valRegex(.*)$/) { # can't use {4} here? :(
-	    $result .= qq{<div class="comment" style="position: absolute; top: $2; left: $4; width: $6; height: $8">} . QuoteHtml($9) . '</div>';
+	  my $valRegex = qr/(([0-9.]+[a-z]*%?)\s+)/;
+	  if ($_ =~ /^\s*(([a-z ]+)\/)?$valRegex$valRegex$valRegex$valRegex(.*)$/) { # can't use {4} here? :(
+	    my $commentClass = $2 ? "imagecomment $2" : 'imagecomment';
+	    $result .= qq{<div class="$commentClass" style="position: absolute; top: $6; left: $4; width: $8; height: $10">} . QuoteHtml($11) . '</div>';
 	  }
 	}
+	$result .= '</div>';
       }
-      $result .= '</div>';
     } else {
       $result = GetDownloadLink($src, 1, undef, $alt);
     }
