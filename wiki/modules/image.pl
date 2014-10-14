@@ -68,10 +68,9 @@ sub ImageSupportRule {
       $result = '';
       $result .= '<div class="imageholder" style="position: relative">' if $comments; # TODO refactoring
       $result .= $q->img({-src=>$src, -alt=>$alt, -title=>$alt, -class=>'upload'});
-      $result = $q->a({-href=>$link, -class=>$linkclass}, $result);
+      $result = $q->a({-href=>$link, -class=>$linkclass}, $result); # XXX div inside a? Does it even work?
       if ($comments) {
 	for (split '\n', $comments) {
-	  #my ($x, $y, $width, $height, $text) = split /\s+/, $_, 5;
 	  my $valRegex = qr/(([0-9.]+[a-z]*%?)\s+)/;
 	  if ($_ =~ /^\s*(([a-z ]+)\/)?$valRegex$valRegex$valRegex$valRegex(.*)$/) { # can't use {4} here? :(
 	    my $commentClass = $2 ? "imagecomment $2" : 'imagecomment';
