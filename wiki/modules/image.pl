@@ -66,18 +66,17 @@ sub ImageSupportRule {
     }
     if ($found) {
       $result = '';
-      $result .= '<div class="imageholder" style="position: relative">' if $comments; # TODO refactoring
       $result .= $q->img({-src=>$src, -alt=>$alt, -title=>$alt, -class=>'upload'});
-      $result = $q->a({-href=>$link, -class=>$linkclass}, $result); # XXX div inside a? Does it even work?
+      $result = $q->a({-href=>$link, -class=>$linkclass}, $result);
       if ($comments) {
 	for (split '\n', $comments) {
 	  my $valRegex = qr/(([0-9.]+[a-z]*%?)\s+)/;
 	  if ($_ =~ /^\s*(([a-z ]+)\/)?$valRegex$valRegex$valRegex$valRegex(.*)$/) { # can't use {4} here? :(
 	    my $commentClass = $2 ? "imagecomment $2" : 'imagecomment';
-	    $result .= qq{<div class="$commentClass" style="position: absolute; top: $6; left: $4; width: $8; height: $10">} . QuoteHtml($11) . '</div>';
+	    $result .= $q->div({-class=>$commentClass, -style=>"position: absolute; top: $6; left: $4; width: $8; height: $10"}, QuoteHtml($11));
 	  }
 	}
-	$result .= '</div>';
+	$result = $q->div({-class=>"imageholder", -style=>"position: relative"}, $result);
       }
     } else {
       $result = GetDownloadLink($src, 1, undef, $alt);
