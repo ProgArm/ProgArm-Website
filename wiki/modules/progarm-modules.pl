@@ -14,7 +14,7 @@
 
 package OddMuse;
 
-AddModuleDescription('progarm-module.pl');
+AddModuleDescription('progarm-modules.pl');
 
 my $sourceUrl = 'https://raw.githubusercontent.com/ProgArm/ProgArm-Client/master/modules/';
 my $viewUrl = 'https://github.com/ProgArm/ProgArm-Client/blob/master/modules/';
