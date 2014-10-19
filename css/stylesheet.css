@@ -371,3 +371,34 @@ img {
     /*width: auto !important;*/
     border-style: none;
 }
+
+.key {
+    border-bottom: 1px dashed #B0B0B0;
+}
+
+.key:hover {
+    background: #333333;
+    border-bottom: 1px dotted #B0B0B0;
+}
+
+.keyspacer {
+    width: 7px;
+}
+
+.keyname {
+    color: #DDDDDD;
+    padding: 0px 4px;
+    background: #333333;
+}
+
+.key1 {
+    color: #90EE59;
+}
+
+.key2 {
+    color: #6A9FFF;
+}
+
+.keynone {
+    color: #606060;
+}
