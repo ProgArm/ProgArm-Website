@@ -76,7 +76,7 @@ sub ImageSupportRule {
 	    $result .= $q->div({-class=>$commentClass, -style=>"position: absolute; top: $6; left: $4; width: $8; height: $10"}, QuoteHtml($11));
 	  }
 	}
-	$result = $q->div({-class=>"imageholder", -style=>"position: relative"}, $result);
+	$result = CloseHtmlEnvironments() . $q->div({-class=>"imageholder", -style=>"position: relative"}, $result);
       }
     } else {
       $result = GetDownloadLink($src, 1, undef, $alt);
