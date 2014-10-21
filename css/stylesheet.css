@@ -323,24 +323,25 @@ img {
     text-align: center;
 }
 
+.nextversion, .currentversion, .oldversion {
+    padding: 3px;
+    display: block;
+}
+
 .nextversion {
     background-color: #111137;
-    padding: 3px;
 }
 
 .currentversion {
     background-color: #113711;
-    padding: 3px;
 }
 
 .oldversion {
     background-color: #371111;
-    padding: 3px;
 }
 
 .imageholder {
     display: inline-block;
-    /*width: auto;*/
 }
 
 .imagecomment {
