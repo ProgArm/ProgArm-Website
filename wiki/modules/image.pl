@@ -65,8 +65,7 @@ sub ImageSupportRule {
       $src = $ImageUrlPath . '/' . ImageUrlEncode($name);
     }
     if ($found) {
-      $result = '';
-      $result .= $q->img({-src=>$src, -alt=>$alt, -title=>$alt, -class=>'upload'});
+      $result = $q->img({-src=>$src, -alt=>$alt, -title=>$alt, -class=>'upload'});
       $result = $q->a({-href=>$link, -class=>$linkclass}, $result);
       if ($comments) {
 	for (split '\n', $comments) {
