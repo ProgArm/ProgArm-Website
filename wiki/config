@@ -16,7 +16,6 @@ $StyleSheet = '/css/stylesheet.css';
 $MaxPost = 430080;
 $HomePage = 'Home';
 $RCName = 'Recent Changes';
-@UserGotoBarPages = ($HomePage, $AskPage, $RCName);
 $SurgeProtectionViews = 20;
 
 $GitMail = 'anybody@progarm.org';
