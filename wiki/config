@@ -32,28 +32,8 @@ $CreoleDashStyleUnorderedLists = 1;
 
 $HtmlHeaders .= '<script type="text/javascript" src="/js/underlineAccesskeys.js"></script>';
 
-$Translate{'Search:'} = ' ';
-$Translate{'Go!'} = 'Search';
 $Translate{'Edit this page'} = 'Edit';
 $Translate{'Comments on this page'} = 'Comments';
-sub GetSearchForm {
-    my $form = # $q->label({-for=>'search'}, '') . ''
-      $q->textfield(-name=>'search', -id=>'search', -size=>20, -placeholder=>'Find...',
-                    -accesskey=>T('f')) . '';
-    if ($ReplaceForm) {
-        $form .= $q->label({-for=>'replace'}, T('Replace:')) . ' '
-            . $q->textfield(-name=>'replace', -id=>'replace', -size=>20) . ' '
-            . $q->checkbox(-name=>'delete', -label=>T('Delete')) . ' ';
-    }
-    if (%Languages) {
-        $form .= $q->label({-for=>'searchlang'}, T('Language:')) . ' '
-            . $q->textfield(-name=>'lang', -id=>'searchlang', -size=>10,
-                            -default=>GetParam('lang', '')) . ' ';
-  }
-    return GetFormStart(undef, 'get', 'search')
-        . $form . #$q->submit('dosearch', T('Go!')) .
-        $q->endform;
-}
 
 sub GetHeaderTitle {
   my ($id, $title, $oldId) = @_;
@@ -65,4 +45,10 @@ sub GetHeaderTitle {
 sub PrintPageCommentsLink {
   my ($id, $comments) = @_;
   print $q->p({-class=>'comment'}, GetPageLink($id, T('Comments on this page')));
+}
+
+*OldGetGotoBar = *GetGotoBar;
+*GetGotoBar = *NewGetGotoBar;
+sub NewGetGotoBar {
+  OldGetGotoBar(@_) . GetSearchForm();
 }

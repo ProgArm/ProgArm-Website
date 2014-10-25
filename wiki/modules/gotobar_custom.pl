@@ -45,14 +45,13 @@ sub GotobarInit {
         # links for unsuspecting users.
         @UserGotoBarPages = ();
         $UserGotoBar = '';
-        $UserGotoBar .= GetSearchForm(); # TODO it does not produce valid html?
 
         $_ = $Page{text};
         while ($_) {
             for (tostring { RunMyRules(1, 1) }) {
                 $UserGotoBar .= "$_ ";
             }
-            $_ = substr($_, pos()+1);
+            $_ = substr($_, pos() + 1); # XXX this is not nice
         }
     }
 }
