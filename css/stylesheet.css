@@ -202,7 +202,7 @@ div.page p.comment {
     margin: 0px 0px 0px 0px;
 }
 
-.footer>form.search, div.footer span.gotobar, div.footer span.edit>br {
+div.footer span.gotobar, div.footer span.edit>br {
     display: none;
 }
 

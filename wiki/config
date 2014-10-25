@@ -46,6 +46,14 @@ sub PrintPageCommentsLink {
   print $q->p({-class=>'comment'}, GetPageLink($id, T('Comments on this page')));
 }
 
+my $searchPrinted = 0;
+*OldGetSearchForm = *GetSearchForm;
+*GetSearchForm = *NewGetSearchForm;
+sub NewGetSearchForm {
+  return '' if $searchPrinted++;
+  OldGetSearchForm(@_);
+}
+
 *OldGetGotoBar = *GetGotoBar;
 *GetGotoBar = *NewGetGotoBar;
 sub NewGetGotoBar {
