@@ -20,8 +20,6 @@ $SurgeProtectionViews = 20;
 
 $GitMail = 'anybody@progarm.org';
 
-$Translate{'Journal'} = ' ';
-
 $FullUrl = ($ENV{'HTTPS'} ? 'https' : 'http') . '://progarm.org';
 $ScriptName = ($ENV{'HTTPS'} ? 'https' : 'http') . '://progarm.org';
 
@@ -31,6 +29,7 @@ $CreoleDashStyleUnorderedLists = 1;
 
 $HtmlHeaders .= '<script type="text/javascript" src="/js/underlineAccesskeys.js"></script>';
 
+$Translate{'Journal'} = ' ';
 $Translate{'Edit this page'} = 'Edit';
 $Translate{'Comments on this page'} = 'Comments';
 
