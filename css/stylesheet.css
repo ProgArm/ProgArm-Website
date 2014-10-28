@@ -249,14 +249,14 @@ div.page p.comment:after {
 }
 
 /*div.page>hr , div.page>hr:first-of-type~*:not(.comment) { */
-div.page>.userComment, div.page>#commentsHeading {
+div.page>.userComment, div.page>.commentsHeading {
     visibility: hidden;
     position: absolute;
     top: -9999px;
     left: -9999px;
 }
 
-#commentsHeading {
+.commentsHeading {
     margin-top: 50px;
 }
 
