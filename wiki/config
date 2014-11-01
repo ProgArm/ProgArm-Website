@@ -29,6 +29,10 @@ $CreoleDashStyleUnorderedLists = 1;
 
 $HtmlHeaders .= '<script type="text/javascript" src="/js/underlineAccesskeys.js"></script>';
 
+@QuestionaskerQuestions = (
+  ['Type "ProgArm" here:' => sub { shift =~ /progarm/i }] # XXX will /i handle non-ascii characters here?
+);
+
 $Translate{'Journal'} = ' ';
 $Translate{'Edit this page'} = 'Edit';
 $Translate{'Comments on this page'} = 'Comments';
