@@ -34,36 +34,40 @@ sub GetProgArmColoredButton {
   $q->span({-class=>($button eq 'x' ? 'keynone ' : '') . $class}, $button);
 }
 
+sub ProgArmProcessKey {
+  my ($input) = @_;
+  my $key;
+  my $combination;
+  my $shift = '';
+  if ($input =~ /^[LlSs]{2} [LlSs]{2}$/) {
+    $combination = uc($input);
+    return "Unknown combination: $input" unless exists $KEYS{$combination};
+    $key = $KEYS{$combination};
+  } elsif ($input =~ /^[a-zA-Z]+$/) {
+    $key = uc($input);
+    return "Unknown key: $input" unless exists $COMBINATIONS{$key};
+    $combination = $COMBINATIONS{$key};
+    $shift = $input =~ /^[A-Z]$/;
+  } else {
+    return "Unknown key: $input";
+  }
+  $combination =~ s/X/x/g;
+  $combination =~ /(.)(.) (.)(.)/;
+  my $result = GetProgArmColoredButton($1, 'key1') . GetProgArmColoredButton($2, 'key2') . GetProgArmColoredButton(' ', 'keyspacer')
+      . GetProgArmColoredButton($3, 'key1') . GetProgArmColoredButton($4, 'key2');
+
+  my $descriptionStart = $shift ? 'press Shift key, then ' : '';
+  my $part1 .= GetProgArmPressDescription($1, $2);
+  my $part2 .= GetProgArmPressDescription($3, $4);
+  my $description = $descriptionStart . ($part1 eq $part2 ? $part1 . ' twice' : $part1 . ' and then ' . $part2);
+
+  return $q->span({-class=>'key', -title=>$description}, $q->span({-class=>'keyname'}, $input) . ' (' . $result . ')');
+}
+
 sub ProgArmKeyRule {
   if (m/\G(Key\{([a-zA-Z ]+)\})/cgi) {
     Dirty($1);
-    my $input = $2;
-    my $key;
-    my $combination;
-    my $shift = '';
-    if ($input =~ /^[LlSs]{2} [LlSs]{2}$/) {
-      $combination = uc($input);
-      return "Unknown combination: $input" unless exists $KEYS{$combination};
-      $key = $KEYS{$combination};
-    } elsif ($input =~ /^[a-zA-Z]+$/) {
-      $key = uc($input);
-      return "Unknown key: $input" unless exists $COMBINATIONS{$key};
-      $combination = $COMBINATIONS{$key};
-      $shift = $input =~ /^[A-Z]$/;
-    } else {
-      return "Unknown key: $input";
-    }
-    $combination =~ s/X/x/g;
-    $combination =~ /(.)(.) (.)(.)/;
-    my $result = GetProgArmColoredButton($1, 'key1') . GetProgArmColoredButton($2, 'key2') . GetProgArmColoredButton(' ', 'keyspacer')
-	. GetProgArmColoredButton($3, 'key1') . GetProgArmColoredButton($4, 'key2');
-
-    my $descriptionStart = $shift ? 'press Shift key, then ' : '';
-    my $part1 .= GetProgArmPressDescription($1, $2);
-    my $part2 .= GetProgArmPressDescription($3, $4);
-    my $description = $descriptionStart . ($part1 eq $part2 ? $part1 . ' twice' : $part1 . ' and then ' . $part2);
-
-    print $q->span({-class=>'key', -title=>$description}, $q->span({-class=>'keyname'}, $input) . ' (' . $result . ')');
+    print ProgArmProcessKey($2);
     return '';
   }
   return undef; # the rule didn't match

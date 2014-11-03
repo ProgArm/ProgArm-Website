@@ -42,7 +42,8 @@ sub ProgArmModuleRule {
       $out .= '<table class="user">';
       $out .= '<tr><th>Function</th><th>Key</th></tr>';
       for (0 .. $#subs) {
-	$out .= qq{<tr><td><div class="subroutine">$subs[$_]</div></td><td><div class="key">$keys[$_]</div></td></tr>};
+	$out .= qq{<tr><td><div class="subroutine">$subs[$_]</div></td><td>};
+	$out .= ProgArmProcessKey($keys[$_]) . '</td></tr>';
       }
       $out .= '</table>';
     }
