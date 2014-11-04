@@ -28,14 +28,15 @@ sub ProgArmModuleRule {
     my @subs = split /\s+/, $3;
     my @keys = split /\s+/, $5;
 
-    $source =~ /(^|\n)our ?\(([\w \$\%\@,]+)\);/; # TODO support individual variables like "our $test = '...';"
-    my @vars = split /[,\s]+/, $2;
+    my @vars = ();
+    # TODO support individual variables like "our $test = '...';"
+    @vars = split /[,\s]+/, $2 if $source =~ /(^|\n)our ?\(([\w \$\%\@,]+)\);/;
 
     my %ignoreVars = ();
     @ignoreVars{qw(%Keys %Actions %Commands %CODES %KEYS)} = undef;
     @vars = grep {not exists $ignoreVars{$_}} @vars;
 
-    $out .= qq{Source code: <a href="$viewUrl$moduleName">$moduleName</a>};
+    my $out .= qq{Source code: <a href="$viewUrl$moduleName">$moduleName</a>};
 
     if (@subs) {
       $out .= '<h2>Provided keys:</h2>';
