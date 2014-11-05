@@ -33,7 +33,7 @@ sub ProgArmModuleRule {
     @vars = split /[,\s]+/, $2 if $source =~ /(^|\n)our ?\(([\w \$\%\@,]+)\);/;
 
     my %ignoreVars = ();
-    @ignoreVars{qw(%Keys %Actions %Commands %CODES %KEYS)} = undef;
+    @ignoreVars{qw(%Keys %Actions %Commands %CODES %KEYS $Android)} = undef;
     @vars = grep {not exists $ignoreVars{$_}} @vars;
 
     my $out .= qq{Source code: <a href="$viewUrl$moduleName">$moduleName</a>};
