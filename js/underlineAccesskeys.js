@@ -18,43 +18,43 @@ function underlineAccessKeys() {
 
     var labels = document.getElementsByTagName('label');
     for (var i = 0; i < labels.length; i++) {
-        var htmlFor = document.getElementById(labels[i].htmlFor);
-        if (htmlFor && htmlFor.accessKey)
-            underlineInNodes(labels[i], htmlFor.accessKey);
-        else if (labels[i].accessKey)
-            underlineInNodes(labels[i], labels[i].accessKey);
+	var htmlFor = document.getElementById(labels[i].htmlFor);
+	if (htmlFor && htmlFor.accessKey)
+	    underlineInNodes(labels[i], htmlFor.accessKey);
+	else if (labels[i].accessKey)
+	    underlineInNodes(labels[i], labels[i].accessKey);
     }
 
     var inputs = document.getElementsByTagName('input');
     for (var i = 0; i < inputs.length; i++)
-        if (inputs[i].accessKey)
-            if (inputs[i].type == 'submit' || inputs[i].type == 'button' || inputs[i].type == 'text') {
-                var newStr = underlineCharacter(inputs[i].value, inputs[i].accessKey);
-                if (newStr != inputs[i].value)
-                    inputs[i].value = newStr
-                else
-                    inputs[i].setAttribute('placeholder', underlineCharacter(inputs[i].getAttribute('placeholder'),
-                                                                             inputs[i].accessKey)); // XXX
-            }
+	if (inputs[i].accessKey)
+	    if (inputs[i].type == 'submit' || inputs[i].type == 'button' || inputs[i].type == 'text') {
+		var newStr = underlineCharacter(inputs[i].value, inputs[i].accessKey);
+		if (newStr != inputs[i].value)
+		    inputs[i].value = newStr;
+		else if (inputs[i].getAttribute('placeholder') != null)
+		    inputs[i].setAttribute('placeholder', underlineCharacter(inputs[i].getAttribute('placeholder'),
+									     inputs[i].accessKey)); // XXX
+	    }
 
     var tagNames = new Array('a', 'button', 'legend');
     for (var j = 0; j < tagNames.length; j++) {
-        var elements = document.getElementsByTagName(tagNames[j]);
-        for (var i = 0; i < elements.length; i++)
-            if (elements[i].accessKey)
-                underlineInNodes(elements[i], elements[i].accessKey);
+	var elements = document.getElementsByTagName(tagNames[j]);
+	for (var i = 0; i < elements.length; i++)
+	    if (elements[i].accessKey)
+		underlineInNodes(elements[i], elements[i].accessKey);
     }
 }
 
 function underlineInNodes(element, character) {
     for (var i = 0; i < element.childNodes.length; i++)
-        if (element.childNodes[i].nodeType == 3) { // only text nodes
-            var newValue = underlineCharacter(element.childNodes[i].nodeValue, character);
-            if (element.childNodes[i].nodeValue != newValue) {
-                element.childNodes[i].nodeValue = newValue;
-                break;
-            }
-        }
+	if (element.childNodes[i].nodeType == 3) { // only text nodes
+	    var newValue = underlineCharacter(element.childNodes[i].nodeValue, character);
+	    if (element.childNodes[i].nodeValue != newValue) {
+		element.childNodes[i].nodeValue = newValue;
+		break;
+	    }
+	}
 }
 
 function underlineCharacter(string, character) {
@@ -62,9 +62,9 @@ function underlineCharacter(string, character) {
     // and different fonts. Feel free to change this!
     var regex = new RegExp('(' + character + ')', 'i');
     if (navigator.appVersion.indexOf("Win") != -1)
-        return string.replace(regex, "\u035F$1");
+	return string.replace(regex, "\u035F$1");
     else
-        return string.replace(regex, "$1\u0332");
+	return string.replace(regex, "$1\u0332");
     //return string.replace(regex, "\u0331$1"); // another good combining underline, but it is a bit too short
 }
 
