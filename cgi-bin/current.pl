@@ -29,7 +29,8 @@
 
 package OddMuse;
 use strict;
-use CGI;
+use utf8; # in case anybody ever addes UTF8 characters to the source
+use CGI qw/-utf8/;
 use CGI::Carp qw(fatalsToBrowser);
 use File::Glob ':glob';
 local $| = 1; # Do not buffer output (localized for mod_perl)
@@ -97,7 +98,7 @@ $LogoUrl     = '';              # URL for site logo ('' for no logo)
 $NotFoundPg  = '';              # Page for not-found links ('' for blank pg)
 
 $NewText     = T('This page is empty.') . "\n";    # New page text
-$NewComment  = T('Add your comment here:') . "\n"; # New comment text
+$NewComment  = T('Add your comment here:'); # New comment text
 
 $EditAllowed = 1;               # 0 = no, 1 = yes, 2 = comments pages only, 3 = comments only
 $AdminPass //= '';              # Whitespace separated passwords.
@@ -214,7 +215,8 @@ sub ReportError {   # fatal!
 }
 
 sub Init {
-  binmode(STDOUT, ':utf8');
+  binmode(STDOUT, ':utf8'); # this is where the HTML gets printed
+  binmode(STDERR, ':utf8'); # just in case somebody prints debug info to stderr
   InitDirConfig();
   $FS = "\x1e"; # The FS character is the RECORD SEPARATOR control char in ASCII
   $Message = ''; # Warnings and non-fatal errors.
@@ -324,9 +326,8 @@ sub ReInit {   # init everything we need if we want to link to stuff
 sub InitCookie {
   undef $q->{'.cookies'};   # Clear cache if it exists (for SpeedyCGI)
   my $cookie = $q->cookie($CookieName);
-  utf8::decode($cookie); # make sure it's decoded as UTF-8
   %OldCookie = split(/$FS/o, UrlDecode($cookie));
-  my %provided = map { utf8::decode($_); $_ => 1 } $q->param;
+  my %provided = map { $_ => 1 } $q->param;
   for my $key (keys %OldCookie) {
     SetParam($key, $OldCookie{$key}) unless $provided{$key};
   }
@@ -362,10 +363,9 @@ sub CookieRollbackFix {
 
 sub GetParam {
   my ($name, $default) = @_;
-  utf8::encode($name); # may fail
+  utf8::encode($name); # turn to byte string
   my $result = $q->param($name);
   $result //= $default;
-  utf8::decode($result) if defined $result; # may fail, avoid turning undef to ''
   return QuoteHtml($result); # you need to unquote anything that can have <tags>
 }
 
@@ -1263,11 +1263,13 @@ sub PageHtml {
   local *STDOUT;
   OpenPage($id);
   open(STDOUT, '>', \$diff) or die "Can't open memory file: $!";
+  binmode(STDOUT); # works whether STDOUT already has the UTF8 layer or not
   binmode(STDOUT, ":utf8");
   PrintPageDiff();
   utf8::decode($diff);
   return $error if $limit and length($diff) > $limit;
   open(STDOUT, '>', \$page) or die "Can't open memory file: $!";
+  binmode(STDOUT); # works whether STDOUT already has the UTF8 layer or not
   binmode(STDOUT, ":utf8");
   PrintPageHtml();
   utf8::decode($page);
@@ -1456,7 +1458,7 @@ sub PageFresh { # pages can depend on other pages (ie. last update), admin statu
 
 sub PageEtag {
   my ($changed, $visible, %params) = CookieData();
-  return UrlEncode(join($FS, $LastUpdate, sort(values %params))); # no CTL in field values
+  return UrlEncode(join($FS, $LastUpdate||$Now, sort(values %params))); # no CTL in field values
 }
 
 sub FileFresh { # old files are never stale, current files are stale when the page was modified
@@ -1716,7 +1718,7 @@ sub GetFilterForm {
 					    -default=>GetParam('lang', ''))));
   }
   return GetFormStart(undef, 'get', 'filter') . $q->p($form) . $q->table($table)
-    . $q->p($q->submit('dofilter', T('Go!'))) . $q->endform;
+    . $q->p($q->submit('dofilter', T('Go!'))) . $q->end_form;
 }
 
 sub RcHtml {
@@ -1791,7 +1793,7 @@ sub RcHtml {
     $more .= ";$_=$val" if $val;
   }
   $html .= $q->p({-class=>'more'}, ScriptLink($more, T('More...'), 'more'));
-  return GetFormStart(undef, 'get', 'rc') . $html . $q->endform;
+  return GetFormStart(undef, 'get', 'rc') . $html . $q->end_form;
 }
 
 sub PrintRcHtml { # to append RC to existing page, or action=rc directly
@@ -2070,7 +2072,7 @@ sub DoRollback {
     if ($Page{text} eq $text) {
       print T("The two revisions are the same."), $q->br() if $page; # no message when doing mass revert
     } elsif (not UserCanEdit($id, 1)) {
-      print Ts('Editing not allowed for %s.', $id), $q->br();
+      print Ts('Editing not allowed: %s is read-only.', $id), $q->br();
     } elsif (not UserIsEditor() and my $rule = BannedContent($text)) {
       print Ts('Rollback of %s would restore banned content.', $id), $rule, $q->br();
     } else {
@@ -2089,11 +2091,20 @@ sub DoAdminPage {
   my @menu = ();
   push(@menu, ScriptLink('action=index',    T('Index of all pages'), 'index')) if $Action{index};
   push(@menu, ScriptLink('action=version',  T('Wiki Version'),     'version')) if $Action{version};
-  push(@menu, ScriptLink('action=unlock',   T('Unlock Wiki'),       'unlock')) if $Action{unlock};
-  push(@menu, ScriptLink('action=password', T('Password'),        'password')) if $Action{password};
+  push(@menu, ScriptLink('action=password', T('Password'), 'password')) if $Action{password};
   push(@menu, ScriptLink('action=maintain', T('Run maintenance'), 'maintain')) if $Action{maintain};
+  my @locks;
+  for my $pattern (@KnownLocks) {
+    for my $name (bsd_glob $pattern) {
+      if (-d $LockDir . $name) {
+	push(@locks, $name);
+      }
+    }
+  }
+  if (@locks and $Action{unlock}) {
+    push(@menu, ScriptLink('action=unlock', T('Unlock Wiki'), 'unlock') . ' (' . join(', ', @locks) . ')');
+  };
   if (UserIsAdmin()) {
-    push(@menu, ScriptLink('action=clear', T('Clear Cache'), 'clear')) if $Action{clear};
     if ($Action{editlock}) {
       if (-f "$DataDir/noedit") {
 	push(@menu, ScriptLink('action=editlock;set=0', T('Unlock site'), 'editlock 0'));
@@ -2111,6 +2122,7 @@ sub DoAdminPage {
 			       Ts('Lock %s',   $title), 'pagelock 1'));
       }
     }
+    push(@menu, ScriptLink('action=clear', T('Clear Cache'), 'clear')) if $Action{clear};
   }
   foreach my $sub (@MyAdminCode) {
     &$sub($id, \@menu, \@rest);
@@ -2238,11 +2250,17 @@ sub GetHeaderTitle {
 sub GetHttpHeader {
   return if $PrintedHeader;
   $PrintedHeader = 1;
-  my ($type, $ts, $status, $encoding) = @_; # $ts is undef, a ts, or 'nocache'
+  my ($type, $ts, $status, $encoding) = @_;
   $q->charset($type =~ m!^(text/|application/xml)! ? 'utf-8' : ''); # text/plain, text/html, application/xml: UTF-8
   my %headers = (-cache_control=>($UseCache < 0 ? 'no-cache' : 'max-age=10'));
-  $headers{-etag} = $ts || PageEtag() if GetParam('cache', $UseCache) >= 2;
-  $headers{'-last-modified'} = TimeToRFC822($ts) if $ts and $ts ne 'nocache'; # RFC 2616 section 13.3.4
+  # Set $ts when serving raw content that cannot be modified by cookie parameters; or 'nocache'; or undef. If you
+  # provide a $ts, the last-modiefied header generated will by used by HTTP/1.0 clients. If you provide no $ts, the etag
+  # header generated will be used by HTTP/1.1 clients. In this situation, cookie parameters can influence the look of
+  # the page and we cannot rely on $LastUpdate. HTTP/1.0 clients will ignore etags. See RFC 2616 section 13.3.4.
+  if (GetParam('cache', $UseCache) >= 2 and $ts ne 'nocache') {
+    $headers{'-last-modified'} = TimeToRFC822($ts) if $ts;
+    $headers{-etag} = PageEtag();
+  }
   $headers{-type} = GetParam('mime-type', $type);
   $headers{-status} = $status if $status;
   $headers{-Content_Encoding} = $encoding if $encoding;
@@ -2276,7 +2294,6 @@ sub Cookie {
   my ($changed, $visible, %params) = CookieData(); # params are URL encoded
   if ($changed) {
     my $cookie = join(UrlEncode($FS), %params); # no CTL in field values
-    utf8::encode($cookie); # prevent casting to Latin 1
     my $result = $q->cookie(-name=>$CookieName, -value=>$cookie, -expires=>'+2y');
     if ($visible) {
       $Message .= $q->p(T('Cookie: ') . $CookieName . ', '
@@ -2442,7 +2459,7 @@ sub GetCommentForm {
 				    -override=>1, -size=>40, -maxlength=>100))),
        $q->p($q->submit(-name=>'Save', -accesskey=>T('s'), -value=>T('Save')), ' ',
        $q->submit(-name=>'Preview', -accesskey=>T('p'), -value=>T('Preview'))),
-       $q->endform());
+       $q->end_form());
   }
   return '';
 }
@@ -2470,7 +2487,7 @@ sub GetSearchForm {
 		      -default=>GetParam('lang', '')) . ' ';
   }
   return GetFormStart(undef, 'get', 'search')
-    . $q->p($form . $q->submit('dosearch', T('Go!'))) . $q->endform;
+    . $q->p($form . $q->submit('dosearch', T('Go!'))) . $q->end_form;
 }
 
 sub GetValidatorLink {
@@ -2978,21 +2995,9 @@ sub UnWiki {
 
 sub DoEdit {
   my ($id, $newText, $preview) = @_;
-  ValidIdOrDie($id);
+  UserCanEditOrDie($id);
   my $upload = GetParam('upload', undef);
-  if (not UserCanEdit($id, 1)) {
-    my $rule = UserIsBanned();
-    if ($rule) {
-      ReportError(T('Edit Denied'), '403 FORBIDDEN', undef,
-      $q->p(T('Editing not allowed: user, ip, or network is blocked.')),
-      $q->p(T('Contact the wiki administrator for more information.')),
-      $q->p(Ts('The rule %s matched for you.', $rule) . ' '
-	    . Ts('See %s for more information.', GetPageLink($BannedHosts))));
-    } else {
-      ReportError(T('Edit Denied'), '403 FORBIDDEN', undef,
-      $q->p(Ts('Editing not allowed: %s is read-only.', NormalToFree($id))));
-    }
-  } elsif ($upload and not $UploadAllowed and not UserIsAdmin()) {
+  if ($upload and not $UploadAllowed and not UserIsAdmin()) {
     ReportError(T('Only administrators can upload files.'), '403 FORBIDDEN');
   }
   OpenPage($id);
@@ -3053,7 +3058,7 @@ sub GetEditForm {
   } elsif ($UploadAllowed or UserIsAdmin()) {
     $html .= $q->p(ScriptLink('action=edit;upload=1;id=' . UrlEncode($page_name), T('Replace this text with a file'), 'upload'));
   }
-  $html .= $q->endform();
+  $html .= $q->end_form();
   return $html;
 }
 
@@ -3071,19 +3076,18 @@ sub DoDownload {
   OpenPage($id) if ValidIdOrDie($id);
   print $q->header(-status=>'304 NOT MODIFIED') and return if FileFresh(); # FileFresh needs an OpenPage!
   my ($text, $revision) = GetTextRevision(GetParam('revision', '')); # maybe revision reset!
-  my $ts = $Page{ts};
   if (my ($type, $encoding) = TextIsFile($text)) {
     my ($data) = $text =~ /^[^\n]*\n(.*)/s;
     my %allowed = map {$_ => 1} @UploadTypes;
     if (@UploadTypes and not $allowed{$type}) {
       ReportError(Ts('Files of type %s are not allowed.', $type), '415 UNSUPPORTED MEDIA TYPE');
     }
-    print GetHttpHeader($type, $ts, undef, $encoding);
+    print GetHttpHeader($type, $Page{ts}, undef, $encoding);
     require MIME::Base64;
     binmode(STDOUT, ":pop:raw"); # need to pop utf8 for Windows users!?
     print MIME::Base64::decode($data);
   } else {
-    print GetHttpHeader('text/plain', $ts);
+    print GetHttpHeader('text/plain', $Page{ts});
     print $text;
   }
 }
@@ -3105,7 +3109,7 @@ sub DoPassword {
     print GetFormStart(undef, undef, 'password'),
       $q->p(GetHiddenValue('action', 'password'), T('Password:'), ' ',
       $q->password_field(-name=>'pwd', -size=>20, -maxlength=>50),
-      $q->submit(-name=>'Save', -accesskey=>T('s'), -value=>T('Save'))), $q->endform;
+      $q->submit(-name=>'Save', -accesskey=>T('s'), -value=>T('Save'))), $q->end_form;
   } else {
     print $q->p(T('This site does not use admin or editor passwords.'));
   }
@@ -3123,6 +3127,24 @@ sub UserIsAdminOrError {
   UserIsAdmin()
     or ReportError(T('This operation is restricted to administrators only...'), '403 FORBIDDEN');
   return 1;
+}
+
+sub UserCanEditOrDie {
+  my $id = shift;
+  ValidIdOrDie($id);
+  if (not UserCanEdit($id, 1)) {
+    my $rule = UserIsBanned();
+    if ($rule) {
+      ReportError(T('Edit Denied'), '403 FORBIDDEN', undef,
+		  $q->p(T('Editing not allowed: user, ip, or network is blocked.')),
+		  $q->p(T('Contact the wiki administrator for more information.')),
+		  $q->p(Ts('The rule %s matched for you.', $rule) . ' '
+			. Ts('See %s for more information.', GetPageLink($BannedHosts))));
+    } else {
+      ReportError(T('Edit Denied'), '403 FORBIDDEN', undef,
+		  $q->p(Ts('Editing not allowed: %s is read-only.', NormalToFree($id))));
+    }
+  }
 }
 
 sub UserCanEdit {
@@ -3490,8 +3512,7 @@ sub Replace {
 
 sub DoPost {
   my $id = FreeToNormal(shift);
-  ValidIdOrDie($id);
-  ReportError(Ts('Editing not allowed for %s.', $id), '403 FORBIDDEN') unless UserCanEdit($id, 1);
+  UserCanEditOrDie($id);
   # Lock before getting old page to prevent races
   RequestLockOrError();		# fatal
   OpenPage($id);
@@ -3505,7 +3526,7 @@ sub DoPost {
   }
   my $comment = UnquoteHtml(GetParam('aftertext', undef));
   $comment =~ s/(\r|$FS)//go;
-  if (defined($comment) and (not $comment or $comment eq $NewComment)) {
+  if (defined $comment and $comment eq '') {
     ReleaseLock();
     ReBrowsePage($id);
   }
@@ -3619,7 +3640,7 @@ sub AddComment {
   my ($string, $comment) = @_;
   $comment =~ s/\r//g;    # Remove "\r"-s (0x0d) from the string
   $comment =~ s/\s+$//g;  # Remove whitespace at the end
-  if ($comment ne '' and $comment ne $NewComment) {
+  if ($comment ne '') {
     my $author = GetParam('username', T('Anonymous'));
     my $homepage = GetParam('homepage', '');
     $homepage = 'http://' . $homepage if $homepage and $homepage !~ /^($UrlProtocols):/;
