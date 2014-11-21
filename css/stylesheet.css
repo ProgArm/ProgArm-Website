@@ -401,3 +401,15 @@ img {
 .keynone {
     color: #606060;
 }
+
+.todo {
+    background-color: #111137;
+}
+
+.done {
+    background-color: #113711;
+}
+
+.undecided {
+    background-color: #373711;
+}
