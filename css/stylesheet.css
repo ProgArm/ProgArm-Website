@@ -321,20 +321,20 @@ img {
     text-align: center;
 }
 
-.nextversion, .currentversion, .oldversion {
+.foo_nextversion, .foo_currentversion, .foo_oldversion {
     padding: 3px;
     display: block;
 }
 
-.nextversion {
+.foo_nextversion {
     background-color: #111137;
 }
 
-.currentversion {
+.foo_currentversion {
     background-color: #113711;
 }
 
-.oldversion {
+.foo_oldversion {
     background-color: #371111;
 }
 
@@ -402,14 +402,14 @@ img {
     color: #606060;
 }
 
-.todo {
+.foo_todo {
     background-color: #111137;
 }
 
-.done {
+.foo_done {
     background-color: #113711;
 }
 
-.undecided {
+.foo_undecided {
     background-color: #373711;
 }
