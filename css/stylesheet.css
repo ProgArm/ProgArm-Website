@@ -202,10 +202,6 @@ div.page p.comment {
     margin: 0px 0px 0px 0px;
 }
 
-div.footer span.gotobar, div.footer span.edit>br {
-    display: none;
-}
-
 strong {
     text-shadow: -1px 0px 0px;
 }
