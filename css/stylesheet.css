@@ -409,3 +409,10 @@ img {
 .foo_undecided {
     background-color: #373711;
 }
+
+.question blockquote {
+    display: inline-block;
+    padding: 0px 20px;
+    margin: 5px;
+    background-color: #222222;
+}
