@@ -85,7 +85,7 @@ a:active {
     text-decoration: underline;
 }
 
-.header>.gotobar {
+.header .gotobar {
     font-family: terminus1;
     line-height: 50px;
 }
@@ -159,7 +159,7 @@ input, textarea {
     border-radius:1px;
 } */
 
-.footer span.edit a {
+.footer .edit a {
     margin-right: 25px;
 }
 
