@@ -29,7 +29,7 @@ push(@MyInitVariables, \&GotobarInit);
 
 sub tostring (&) { # catch stdout of a sub into a string
   my $s;
-  open local *STDOUT, '>', \$s;
+  open(local *STDOUT, '>', \$s);
   shift->();
   $s
 }
