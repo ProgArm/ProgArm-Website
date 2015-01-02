@@ -21,6 +21,45 @@ my $CommentDiv = 0;
 push(@MyRules, \&CommentDivWrapper);
 $RuleOrder{\&CommentDivWrapper} = -50;
 
+#push(@MyRules, \&CommentAuthorDivWrapperLink);
+#$RuleOrder{\&CommentAuthorDivWrapperLink} = -51;
+
+#push(@MyRules, \&CommentAuthorDivWrapper);
+#$RuleOrder{\&CommentAuthorDivWrapper} = -52;
+
+my @CommentTimestamps = ();
+my $ignoreNow = '';
+
+sub CommentAuthorDivWrapper {
+  if ($OpenPageName =~ /$CommentsPattern/o) {
+    $oldPos = pos;
+    if ($bol and m/\G -- [^\n]+ (\d{4}-\d\d-\d\d \s+ \d\d:\d\d \s+ UTC)/cgx) {
+      push @CommentTimestamps, "$1";
+      pos = $oldPos;
+      return undef;
+    }
+  }
+  return undef;
+}
+
+sub CommentAuthorDivWrapperLink {
+  if ($OpenPageName =~ /$CommentsPattern/o) {
+    return undef unless @CommentTimestamps;
+    my $regex = qr/$CommentTimestamps[-1]/;
+    if ($bol and m/\G(.*)$regex\n/cgx) {
+      return QuoteHtml($1) . $q->a({-href=>'#comment' . GetCommentLink($CommentTimestamps[-1])}, $CommentTimestamps[-1]);
+    }
+  }
+  return undef;
+}
+
+sub GetCommentLink {
+  my ($timestamp) = @_;
+  $timestamp =~ s/[\s:-]/_/g;
+  $timestamp;
+}
+
+
 sub CommentDivWrapper {
   if (substr($OpenPageName, 0, length($CommentsPrefix)) eq $CommentsPrefix) {
     if (pos == 0 and not $CommentDiv) {
@@ -31,7 +70,8 @@ sub CommentDivWrapper {
   if ($OpenPageName =~ /$CommentsPattern/o) {
     if ($bol and m/\G(\s*\n)*----+[ \t]*\n?/cg) {
       my $html = CloseHtmlEnvironments()
-	  . ($CommentDiv++ > 0 ? $q->end_div() : $q->h2({-class=>'commentsHeading'}, T('Comments:'))) . $q->start_div({-class=>'userComment'})
+	  . ($CommentDiv++ > 0 ? $q->end_div() : $q->h2({-class=>'commentsHeading'}, T('Comments:')))
+	  . $q->start_div({-class=>'userComment', -id=>'comment' . (@CommentTimestamps ? GetCommentLink($CommentTimestamps[$CommentDiv]) : '')})
 	  . AddHtmlEnvironment('p');
       return $html;
     }
