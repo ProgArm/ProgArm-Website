@@ -53,12 +53,6 @@ sub CommentAuthorDivWrapperLink {
   return undef;
 }
 
-sub GetCommentLink {
-  my ($timestamp) = @_;
-  $timestamp =~ s/[\s:-]/_/g;
-  $timestamp;
-}
-
 
 sub CommentDivWrapper {
   if (substr($OpenPageName, 0, length($CommentsPrefix)) eq $CommentsPrefix) {
@@ -71,7 +65,7 @@ sub CommentDivWrapper {
     if ($bol and m/\G(\s*\n)*----+[ \t]*\n?/cg) {
       my $html = CloseHtmlEnvironments()
 	  . ($CommentDiv++ > 0 ? $q->end_div() : $q->h2({-class=>'commentsHeading'}, T('Comments:')))
-	  . $q->start_div({-class=>'userComment', -id=>'comment' . (@CommentTimestamps ? GetCommentLink($CommentTimestamps[$CommentDiv]) : '')})
+	  . $q->start_div({-class=>'userComment', -id=>'comment' . $CommentDiv})
 	  . AddHtmlEnvironment('p');
       return $html;
     }
