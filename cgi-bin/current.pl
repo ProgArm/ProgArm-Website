@@ -3384,6 +3384,7 @@ sub GrepFiltered { # grep is so much faster!!
     push(@result, $1) if m/.*\/(.*)\.pg/ and not $found{$1};
   }
   close(F);
+  return @pages if $?;
   return sort @result;
 }
 
@@ -3495,7 +3496,13 @@ sub Replace {
       next if (@languages and not grep(/$lang/, @languages));
     }
     $_ = $Page{text};
-    if (eval "s{$from}{$to}gi") { # allows use of backreferences
+    my $replacement = sub {
+      my ($o1, $o2, $o3, $o4, $o5, $o6, $o7, $o8, $o9) = ($1, $2, $3, $4, $5, $6, $7, $8, $9);
+      my $str = $to;
+      $str =~ s/\$([1-9])/'$o' . $1/gee;
+      $str
+    };
+    if (s/$from/$replacement->()/gei) { # allows use of backreferences
       push (@result, $id);
       Save($id, $_, $from . ' → ' . $to, 1, ($Page{host} ne GetRemoteHost()));
     }
