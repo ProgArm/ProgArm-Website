@@ -357,6 +357,11 @@ img {
 
 .port {
     border-color: #00CC44;
+
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    flex-direction: column;
 }
 
 .imagecomment:hover {
