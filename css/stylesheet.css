@@ -415,7 +415,7 @@ img {
     background-color: #373711;
 }
 
-.foo_outdated {
+div.foo_outdated {
     font-size: 120%;
     padding: 12px 20px;
     margin-left: 20px;
@@ -424,7 +424,7 @@ img {
     background-image: repeating-linear-gradient(45deg, black 0px, black 25px, transparent 25px, transparent 50px, black 50px);
 }
 
-.foo_notimplemented {
+div.foo_notimplemented {
     font-size: 120%;
     padding: 12px 20px;
     margin-left: 20px;
