@@ -85,7 +85,7 @@ $CookieName  = 'Wiki';          # Name for this wiki (for multi-wiki sites)
 $SiteBase    = '';              # Full URL for <BASE> header
 $MaxPost     = 1024 * 210;      # Maximum 210K posts (about 200K for pages)
 $StyleSheet  = '';              # URL for CSS stylesheet (like '/wiki.css')
-$StyleSheetPage = 'css';        # Page for CSS sheet
+$StyleSheetPage = '';           # Page for CSS sheet
 $LogoUrl     = '';              # URL for site logo ('' for no logo)
 $NotFoundPg  = '';              # Page for not-found links ('' for blank pg)
 
@@ -421,7 +421,8 @@ sub ApplyRules {
     Clean(CloseHtmlEnvironments() . $q->pre($text));
   } elsif (my ($type) = TextIsFile($text)) { # TODO? $type defined here??
     Clean(CloseHtmlEnvironments() . $q->p(T('This page contains an uploaded file:'))
-	  . $q->p(GetDownloadLink($OpenPageName, (substr($type, 0, 6) eq 'image/'), $revision)));
+	  . $q->p(GetDownloadLink($OpenPageName, (substr($type, 0, 6) eq 'image/'), $revision))
+	  . (length $Page{summary} > 0 ? $q->blockquote(QuoteHtml($Page{summary})) : $q->p(T('No summary was provided for this file.'))));
   } else {
     my $smileyregex = join "|", keys %Smilies;
     $smileyregex = qr/(?=$smileyregex)/;
@@ -535,7 +536,7 @@ sub ListRule {
     return CloseHtmlEnvironmentUntil('li')
       . OpenHtmlEnvironment('ul', length($2)) . AddHtmlEnvironment('li');
   }
-  return undef;
+  return;
 }
 
 sub LinkRules {
@@ -602,7 +603,7 @@ sub LinkRules {
     my $bracket = (substr($1, 0, 3) eq '[[[');
     print GetPageOrEditLink($2, $3, $bracket, 1); # $3 may be empty
   } else {
-    return undef;   # nothing matched
+    return;   # nothing matched
   }
   return '';     # one of the dirty rules matched (and they all are)
 }
@@ -716,7 +717,7 @@ sub RunMyRules {
     SetParam('msg', $@) if $@;
     return $result if defined($result);
   }
-  return undef;
+  return;
 }
 
 sub RunMyMacros {
@@ -3087,6 +3088,7 @@ sub DoDownload {
 }
 
 sub DoPassword {
+  my $id = shift;
   print GetHeader('', T('Password')), $q->start_div({-class=>'content password'});
   print $q->p(T('Your password is saved in a cookie, if you have cookies enabled. Cookies may get lost if you connect from another machine, from another account, or using another software.'));
   if (UserIsAdmin()) {
@@ -3096,16 +3098,20 @@ sub DoPassword {
   } else {
     print $q->p(T('You are a normal user on this site.'));
     if ($AdminPass or $EditPass) {
-      print $q->p(T('Your password does not match any of the  administrator or editor passwords.'));
+      print $q->p(T('Your password does not match any of the administrator or editor passwords.'));
     }
   }
   if ($AdminPass or $EditPass) {
     print GetFormStart(undef, undef, 'password'),
       $q->p(GetHiddenValue('action', 'password'), T('Password:'), ' ',
       $q->password_field(-name=>'pwd', -size=>20, -maxlength=>50),
+      $q->hidden(-name=>'id', -value=>$id),
       $q->submit(-name=>'Save', -accesskey=>T('s'), -value=>T('Save'))), $q->end_form;
   } else {
     print $q->p(T('This site does not use admin or editor passwords.'));
+  }
+  if ($id) {
+    print $q->p(ScriptLink('action=browse;id=' . UrlEncode($id) . '&time=' . time, T('Return to ' . NormalToFree($id))));
   }
   print $q->end_div();
   PrintFooter();
@@ -3330,7 +3336,7 @@ sub SearchResultCount { $q->p({-class=>'result'}, Ts('%s pages found.', (shift))
 
 sub PageIsUploadedFile {
   my $id = shift;
-  return undef if $OpenPageName eq $id;
+  return if $OpenPageName eq $id;
   if ($IndexHash{$id}) {
     my $file = GetPageFile($id);
     utf8::encode($file); # filenames are bytes!
@@ -3529,7 +3535,7 @@ sub DoPost {
   $comment =~ s/(\r|$FS)//go;
   if (defined $comment and $comment eq '') {
     ReleaseLock();
-    ReBrowsePage($id);
+    return ReBrowsePage($id);
   }
   if ($filename) {		# upload file
     my $file = $q->upload('file');
@@ -3625,6 +3631,7 @@ sub DoPost {
 
 sub GetSummary {
   my $text = GetParam('aftertext',  '') || ($Page{revision} > 0 ? '' : GetParam('text', ''));
+  return '' if $text =~ /^#FILE /;
   if ($SummaryDefaultLength and length($text) > $SummaryDefaultLength) {
     $text = substr($text, 0, $SummaryDefaultLength);
     $text =~ s/\s*\S*$/ . . ./;

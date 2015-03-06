@@ -29,15 +29,14 @@ sub CommentDivWrapper {
     }
   }
   if ($OpenPageName =~ /$CommentsPattern/o) {
-    if ($bol and m/\G(\s*\n)*----+[ \t]*([A-Za-z]+)?\n?/cg) { # TODO better id pattern
+    if ($bol and m/\G(\s*\n)*----+[ \t]*\n?/cg) {
       my $html = CloseHtmlEnvironments()
-	  . ($CommentDiv++ > 0 ? $q->end_div() : $q->h2({-class=>'commentsHeading'}, T('Comments:')))
-	  . $q->start_div({-class=>'userComment', -id=>'comment' . ($2 ? $2 : $CommentDiv)})
+	  . ($CommentDiv++ > 0 ? $q->end_div() : $q->h2({-class=>'commentsHeading'}, T('Comments:'))) . $q->start_div({-class=>'userComment'})
 	  . AddHtmlEnvironment('p');
       return $html;
     }
   }
-  return undef;
+  return;
 }
 
 # close final div
