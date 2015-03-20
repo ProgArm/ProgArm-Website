@@ -1,6 +1,8 @@
 #! /usr/bin/perl
-# Copyright (C) 2001-2013
+# Copyright (C) 2001-2015
 #     Alex Schroeder <alex@gnu.org>
+# Copyright (C) 2014-2015
+#     Alex Jakimenko <alex.jakimenko@gmail.com>
 # Copyleft      2008 Brian Curry <http://www.raiazome.com>
 # ... including lots of patches from the UseModWiki site
 # Copyright (C) 2001, 2002  various authors
@@ -54,7 +56,7 @@ $FreeInterLinkPattern %InvisibleCookieParameters %AdminPages $UseQuestionmark $J
 
 # Internal variables:
 use vars qw(%Page %InterSite %IndexHash %Translate %OldCookie $FootnoteNumber $OpenPageName @IndexList $Message $q $Now
-%RecentVisitors @HtmlStack @HtmlAttrStack $ReplaceForm %MyInc $CollectingJournal $bol $WikiDescription $PrintedHeader
+%RecentVisitors @HtmlStack @HtmlAttrStack %MyInc $CollectingJournal $bol $WikiDescription $PrintedHeader
 %Locks $Fragment @Blocks @Flags $Today @KnownLocks $ModulesDescription %Action %RuleOrder %Includes
 %RssInterwikiTranslate);
 
@@ -115,7 +117,7 @@ $UseDiff     = 1;               # 1 = use diff
 $UseGrep     = 1;               # 1 = use grep to speed up searches
 $SurgeProtection      = 1;      # 1 = protect against leeches
 $SurgeProtectionTime  = 20;     # Size of the protected window in seconds
-$SurgeProtectionViews = 10;     # How many page views to allow in this window
+$SurgeProtectionViews = 20;     # How many page views to allow in this window
 $DeletedPage = 'DeletedPage';   # Pages starting with this can be deleted
 $RCName      = 'RecentChanges'; # Name of changes page
 @RcDays      = qw(1 3 7 30 90); # Days for links on RecentChanges
@@ -272,7 +274,6 @@ sub InitVariables {  # Init global session variables for mod_perl!
 			   $Counter++ > 0 ? Ts('%s calls', $Counter) : '');
   $WikiDescription .= $ModulesDescription if $ModulesDescription;
   $PrintedHeader = 0; # Error messages don't print headers unless necessary
-  $ReplaceForm = 0;   # Only admins may search and replace
   $ScriptName //= $q->url(); # URL used in links
   $FullUrl ||= $ScriptName; # URL used in forms
   %Locks = ();
@@ -1672,7 +1673,7 @@ sub RcHeader {
   }
   return $html .
     $q->p((map { ScriptLink("$action;days=$_;all=$all;showedit=$edits",
-			    ($_ != 1) ? Ts('%s days', $_) : Ts('%s days', $_));
+			    ($_ != 1) ? Ts('%s days', $_) : Ts('%s day', $_));
 	       } @RcDays), $q->br(), @menu, $q->br(),
 	  ScriptLink($action . ';from=' . ($LastUpdate + 1)
 		     . ";all=$all;showedit=$edits", T('List later changes')),
@@ -2476,7 +2477,7 @@ sub GetSearchForm {
   my $html = GetFormStart(undef, 'get', 'search') . $q->start_p;
   $html .= $q->label({-for=>'search'}, T('Search:')) . ' '
       . $q->textfield(-name=>'search', -id=>'search', -size=>20, -accesskey=>T('f')) . ' ';
-  if ($ReplaceForm) {
+  if (GetParam('search') ne '' and UserIsAdmin()) { # see DoBrowseRequest
     $html .= $q->label({-for=>'replace'}, T('Replace:')) . ' '
 	. $q->textfield(-name=>'replace', -id=>'replace', -size=>20) . ' '
 	. $q->checkbox(-name=>'delete', -label=>T('Delete')) . ' ';
@@ -3318,7 +3319,6 @@ sub DoSearch {
 	RcTextItem('link', $q->url(-path_info=>1, -query=>1)), "\n" if GetParam('context', 1);
     } else {
       print GetHeader('', Ts('Search for: %s', $string)), $q->start_div({-class=>'content search'});
-      $ReplaceForm = UserIsAdmin();
       print $q->p({-class=>'links'}, SearchMenu($string));
     }
     @results = SearchTitleAndBody($string, \&PrintSearchResult, SearchRegexp($string));
