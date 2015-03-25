@@ -11,8 +11,7 @@
 body {
     background-color: #151515;
     color: #B0B0B0;
-    font-family: terminus1;
-/*    font-family: Arial,Helvetica,sans-serif; */
+    font-family: terminus1, terminus2, Courier, monospace;
     margin: 12px 0px;
 }
 
@@ -27,9 +26,6 @@ body {
 } */
 
 form.search {
-    /*padding: 6px 8px 6px 35px;
-    margin-right: 5px;
-    margin-top: -10px;*/
     padding: 10px;
     margin: 5px;
     float: right;
@@ -40,12 +36,9 @@ form.search p {
 }
 
 form.search input[type="text"] {
-    /*font: bold 12px Arial,Helvetica,Sans-serif;*/
     width: 140px;
     padding: 3px 12px;
     margin-top: -3px;
-/*    margin-right: 5px;
-    margin-top: 15px;*/
 }
 
 form.search input[type="submit"] {
@@ -71,10 +64,9 @@ span.accesskey {
 }
 
 a {
-    color: #6A9FB5; /* #999999; */
+    color: #6A9FB5;
     text-decoration: none;
-    font-family: terminus1, terminus2;
-/*    font-family: "Lucida Console", Monaco, monospace;*/
+    font-family: terminus1, terminus2, Courier, monospace;
 }
 
 a:hover {
@@ -122,9 +114,6 @@ h3 {
 }
 
 .gotobar>a {
-/*    right: 0px;
-    top: 0px;*/
-    font-family: terminus1;
     font-size: 16px;
     padding: 14px;
     margin: 0px;
@@ -147,17 +136,8 @@ input, textarea {
     border-style: solid;
     border-color: #888888;
     border-width: 1px;
-    font-family: terminus1;
-/*    font-family: Arial,Helvetica,sans-serif; */
+    font-family: terminus1, terminus2, Courier, monospace;
 }
-/*
-.header form input {
-    font-size: 18px;
-    background-color: #EAEAEA;
-    border-color: #BBBBBB;
-    padding: 0px;
-    border-radius:1px;
-} */
 
 .footer .edit a {
     margin-right: 25px;
@@ -186,7 +166,7 @@ table.user tr td {
 }
 
 a.number {
-    font-size: 60%; /* fix px and % mess */
+    font-size: 60%; /* TODO fix px and % mess */
     vertical-align: top;
 }
 
@@ -232,10 +212,8 @@ div.page {
     padding: 10px;
     margin: 20px 0px 5px 0px;
     font-size: 100%;
-/*    font-weight: bold;*/
 }
 
-/*div.page>hr {*/
 div.page>.userComment {
     counter-increment: commentscount;
 }
@@ -244,7 +222,6 @@ div.page p.comment:after {
     content: " (" counter(commentscount) ")";
 }
 
-/*div.page>hr , div.page>hr:first-of-type~*:not(.comment) { */
 div.page>.userComment, div.page>.commentsHeading {
     visibility: hidden;
     position: absolute;
