@@ -33,6 +33,8 @@ $HtmlHeaders .= '<script type="text/javascript" src="/js/underlineAccesskeys.js"
   ['Type "ProgArm" here:' => sub { shift =~ /progarm/i }] # XXX will /i handle non-ascii characters here?
 );
 
+push @PygmentizeArgs, qw(-O style=native);
+
 $Translate{'Journal'} = ' ';
 $Translate{'Edit this page'} = 'Edit';
 $Translate{'Comments on this page'} = 'Comments';
