@@ -1,5 +1,5 @@
-# Copyright (C) 2008  Alex Schroeder <alex@gu.org>
-# Copyright (C) 2004, 2005  Fletcher T. Penney <fletcher@freeshell.org>
+# Copyright (C) 2008–2015  Alex Schroeder <alex@gu.org>
+# Copyright (C) 2004–2005  Fletcher T. Penney <fletcher@freeshell.org>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,15 +14,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+use strict;
+
 AddModuleDescription('logbannedcontent.pl', 'LogBannedContent Module');
 
+use vars qw($OpenPageName $Now $DataDir $BannedContent);
 use vars qw($BannedFile);
 
 $BannedFile = "$DataDir/spammer.log" unless defined $BannedFile;
 
-*LogOldBannedContent = *BannedContent;
-*BannedContent = *LogNewBannedContent;
-$BannedContent = $LogOldBannedContent; # copy variable
+*LogOldBannedContent = \&BannedContent;
+*BannedContent = \&LogNewBannedContent;
 
 sub LogNewBannedContent {
   my $str = shift;

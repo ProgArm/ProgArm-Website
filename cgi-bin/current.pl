@@ -2953,7 +2953,6 @@ sub TimeToRFC822 {
 
 sub GetHiddenValue {
   my ($name, $value) = @_;
-  $q->param($name, $value);
   return $q->input({-type=>"hidden", -name=>$name, -value=>$value});
 }
 
@@ -3034,8 +3033,10 @@ sub DoEdit {
 sub GetEditForm {
   my ($page_name, $upload, $oldText, $revision) = @_;
   my $html = GetFormStart(undef, undef, $upload ? 'edit upload' : 'edit text') # protected by questionasker
-    .$q->p(GetHiddenValue("title", $page_name), ($revision ? GetHiddenValue('revision', $revision) : ''),
-           GetHiddenValue('oldtime', $Page{ts}), ($upload ? GetUpload() : GetTextArea('text', $oldText)));
+    .$q->p(GetHiddenValue("title", $page_name),
+	   ($revision ? GetHiddenValue('revision', $revision) : ''),
+           GetHiddenValue('oldtime', GetParam('oldtime', $Page{ts})), # prefer parameter over actual timestamp
+	   ($upload ? GetUpload() : GetTextArea('text', $oldText)));
   my $summary = UnquoteHtml(GetParam('summary', ''))
     || ($Now - $Page{ts} < ($SummaryHours * 3600) ? $Page{summary} : '');
   $html .= $q->p(T('Summary:').$q->br().GetTextArea('summary', $summary, 2))

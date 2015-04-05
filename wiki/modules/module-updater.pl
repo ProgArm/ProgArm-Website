@@ -12,6 +12,8 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
+use strict;
+
 use File::Basename;
 use File::Copy;
 
@@ -19,6 +21,7 @@ package OddMuse;
 
 AddModuleDescription('module-updater.pl', 'Module Updater Extension');
 
+use vars qw($q %Action @MyAdminCode $TempDir $ModuleDir);
 our $OddmuseModulesUrl = 'http://git.savannah.gnu.org/cgit/oddmuse.git/plain/modules/';
 
 push(@MyAdminCode, \&ModuleUpdaterMenu);
@@ -26,7 +29,7 @@ $Action{updatemodules} = \&ModuleUpdaterAction;
 
 sub ModuleUpdaterMenu {
   return unless UserIsAdmin();
-  my ($id, $menuref, $restref) = @_;
+  my ($id, $menuref) = @_;
   push(@$menuref, ScriptLink('action=updatemodules', T('Update modules'), 'moduleupdater'));
 }
 
@@ -80,6 +83,7 @@ sub ProcessModule {
     return;
   }
   open my $fh, ">", "$TempDir/$module" or die("Could not open file. $!");
+  utf8::encode($moduleData);
   print $fh $moduleData;
   close $fh;
 
@@ -107,6 +111,6 @@ sub ProcessModule {
 
 sub DoModuleDiff {
   my $diff = `diff -U 3 -- \Q$_[0]\E \Q$_[1]\E`;
-  utf8::decode($diff_out); # needs decoding
+  utf8::decode($diff); # needs decoding
   return $diff;
 }

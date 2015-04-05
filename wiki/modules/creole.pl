@@ -1,4 +1,6 @@
 #!/usr/bin/env perl
+use strict;
+
 # ====================[ creole.pl                          ]====================
 
 =head1 NAME
@@ -15,6 +17,8 @@ directory for your Oddmuse Wiki.
 package OddMuse;
 
 AddModuleDescription('creole.pl', 'Creole Markup Extension');
+
+use vars qw($q $bol %InterSite $FreeLinkPattern $FullUrlPattern $FreeLinkPattern $FreeInterLinkPattern $InterSitePattern @MyRules %RuleOrder @MyInitVariables @HtmlStack @HtmlAttrStack);
 
 # ....................{ CONFIGURATION                      }....................
 
@@ -590,11 +594,14 @@ C<CreoleRule>. This function ensures, among other safeties, that the
 C<CreoleRule> function is not recursed into more than once.
 
 =cut
+
+our $CreoleRuleRecursing; # must have a variable to localize below
+
 sub CreoleRuleRecursive {
   my     $markup = shift;
   return $markup if $CreoleRuleRecursing;  # avoid infinite loops
-              local $CreoleRuleRecursing = 1;
-              local $bol = 0;  # prevent block level element handling
+  local $CreoleRuleRecursing = 1; # use local for the mod_perl case
+  local $bol = 0;  # prevent block level element handling
 
   # Preserve global variables.
   my ($oldpos, $old_) = (pos, $_);
