@@ -64,7 +64,7 @@ function underlineCharacter(string, character) {
     if (navigator.appVersion.indexOf("Win") != -1)
 	return string.replace(regex, "\u035F$1");
     else
-	return string.replace(regex, "$1\u0332");
+	return string.replace(regex, "\u0332$1");
     //return string.replace(regex, "\u0331$1"); // another good combining underline, but it is a bit too short
 }
 
