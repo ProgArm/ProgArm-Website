@@ -18,11 +18,11 @@ use strict;
 
 AddModuleDescription('questionasker.pl', 'QuestionAsker Extension');
 
-use vars qw($q $bol $FreeLinks $FreeLinkPattern $LinkPattern $WikiLinks @MyInitVariables %AdminPages %CookieParameters %InvisibleCookieParameters);
-use vars qw(@QuestionaskerQuestions
-	    $QuestionaskerRememberAnswer
-	    $QuestionaskerSecretKey
-	    $QuestionaskerRequiredList
+our ($q, $bol, $FreeLinks, $FreeLinkPattern, $LinkPattern, $WikiLinks, @MyInitVariables, %AdminPages, %CookieParameters, %InvisibleCookieParameters);
+our (@QuestionaskerQuestions,
+	    $QuestionaskerRememberAnswer,
+	    $QuestionaskerSecretKey,
+	    $QuestionaskerRequiredList,
 	    %QuestionaskerProtectedForms);
 
 # A list of arrays. The first element in each array is a string, the
@@ -64,8 +64,8 @@ sub QuestionaskerInit {
   $InvisibleCookieParameters{$QuestionaskerSecretKey} = 1;
 }
 
-*OldQuestionaskerDoPost = *DoPost;
-*DoPost = *NewQuestionaskerDoPost;
+*OldQuestionaskerDoPost = \&DoPost;
+*DoPost = \&NewQuestionaskerDoPost;
 
 sub NewQuestionaskerDoPost {
   my(@params) = @_;
@@ -97,15 +97,15 @@ sub NewQuestionaskerDoPost {
   return (OldQuestionaskerDoPost(@params));
 }
 
-*OldQuestionaskerGetEditForm = *GetEditForm;
-*GetEditForm = *NewQuestionaskerGetEditForm;
+*OldQuestionaskerGetEditForm = \&GetEditForm;
+*GetEditForm = \&NewQuestionaskerGetEditForm;
 
 sub NewQuestionaskerGetEditForm {
   return QuestionAddTo(OldQuestionaskerGetEditForm(@_), $_[1]);
 }
 
-*OldQuestionaskerGetCommentForm = *GetCommentForm;
-*GetCommentForm = *NewQuestionaskerGetCommentForm;
+*OldQuestionaskerGetCommentForm = \&GetCommentForm;
+*GetCommentForm = \&NewQuestionaskerGetCommentForm;
 
 sub NewQuestionaskerGetCommentForm {
   return QuestionAddTo(OldQuestionaskerGetCommentForm(@_));

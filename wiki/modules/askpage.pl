@@ -19,8 +19,8 @@ AddModuleDescription('askpage.pl', 'Ask Page Extension');
 
 use Fcntl qw(:DEFAULT :flock);
 
-use vars qw($DataDir $NewComment);
-use vars qw($AskPage $QuestionPage $NewQuestion);
+our ($DataDir, $NewComment);
+our ($AskPage, $QuestionPage, $NewQuestion);
 # Don't forget to set your $CommentsPattern to include both $AskPage and $QuestionPage
 $AskPage = 'Ask';
 $QuestionPage = 'Question_';
@@ -38,8 +38,8 @@ sub IncrementInFile {
   return $num;
 }
 
-*OldAskPageDoPost=*DoPost;
-*DoPost=*NewAskPageDoPost;
+*OldAskPageDoPost=\&DoPost;
+*DoPost=\&NewAskPageDoPost;
 sub NewAskPageDoPost {
   my $id = FreeToNormal(shift);
   if ($id eq $AskPage and not GetParam('text', undef)) { # comment, not a regular edit
@@ -50,16 +50,16 @@ sub NewAskPageDoPost {
   OldAskPageDoPost($id, @_); # keep original functionality for regular edits
 }
 
-*OldAskPageGetCommentForm=*GetCommentForm;
-*GetCommentForm=*NewAskPageGetCommentForm;
+*OldAskPageGetCommentForm=\&GetCommentForm;
+*GetCommentForm=\&NewAskPageGetCommentForm;
 sub NewAskPageGetCommentForm {
   my ($id, $rev, $comment) = @_;
   $NewComment = $NewQuestion if $id eq $AskPage;
   OldAskPageGetCommentForm(@_);
 }
 
-*OldAskPageJournalSort=*JournalSort;
-*JournalSort=*NewAskPageJournalSort;
+*OldAskPageJournalSort=\&JournalSort;
+*JournalSort=\&NewAskPageJournalSort;
 sub NewAskPageJournalSort {
   return OldAskPageJournalSort() unless $a =~ m/^$QuestionPage\d+$/ and $b =~ m/^$QuestionPage\d+$/;
   ($b =~ m/$QuestionPage(\d+)/)[0] <=> ($a =~ m/$QuestionPage(\d+)/)[0];

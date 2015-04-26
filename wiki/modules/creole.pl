@@ -18,7 +18,7 @@ package OddMuse;
 
 AddModuleDescription('creole.pl', 'Creole Markup Extension');
 
-use vars qw($q $bol %InterSite $FreeLinkPattern $FullUrlPattern $FreeLinkPattern $FreeInterLinkPattern $InterSitePattern @MyRules %RuleOrder @MyInitVariables @HtmlStack @HtmlAttrStack);
+our ($q, $bol, %InterSite, $FreeLinkPattern, $FullUrlPattern, $FreeLinkPattern, $FreeInterLinkPattern, $InterSitePattern, @MyRules, %RuleOrder, @MyInitVariables, @HtmlStack, @HtmlAttrStack);
 
 # ....................{ CONFIGURATION                      }....................
 
@@ -28,9 +28,9 @@ creole is easily configurable; set these variables in the B<wiki/config.pl>
 file for your Oddmuse Wiki.
 
 =cut
-use vars qw($CreoleLineBreaks
-            $CreoleTildeAlternative
-            $CreoleTableCellsContainBlockLevelElements
+our ($CreoleLineBreaks,
+            $CreoleTildeAlternative,
+            $CreoleTableCellsContainBlockLevelElements,
             $CreoleDashStyleUnorderedLists);
 
 =head2 $CreoleLineBreaks
@@ -467,7 +467,7 @@ sub CreoleListAndNewLineRule {
   # # numbered list
   # * bullet list (nestable; needs space when nested to disambiguate from bold)
   if (($bol             and m/\G[ \t]*([#*])[ \t]*/cg) or
-      ($is_in_list_item and m/\G[ \t]*\n+[ \t]*(#+)[ \t]*/cg) or 
+      ($is_in_list_item and m/\G[ \t]*\n+[ \t]*(#+)[ \t]*/cg) or
       ($is_in_list_item and m/\G[ \t]*\n+[ \t]*(\*+)[ \t]+/cg)) {
     # Note: the first line of this return statement is --not-- equivalent to:
     # "return CloseHtmlEnvironmentUntil('li')", as that line does not permit
@@ -563,8 +563,8 @@ sub GetCreoleLinkHtml {
 }
 
 # ....................{ FUNCTIONS                          }....................
-*RunMyRulesCreoleOld = *RunMyRules;
-*RunMyRules =          *RunMyRulesCreole;
+*RunMyRulesCreoleOld = \&RunMyRules;
+*RunMyRules =          \&RunMyRulesCreole;
 
 =head2 RunMyRulesCreole
 

@@ -18,8 +18,8 @@ use strict;
 
 AddModuleDescription('logbannedcontent.pl', 'LogBannedContent Module');
 
-use vars qw($OpenPageName $Now $DataDir $BannedContent);
-use vars qw($BannedFile);
+our ($OpenPageName, $Now, $DataDir, $BannedContent);
+our ($BannedFile);
 
 $BannedFile = "$DataDir/spammer.log" unless defined $BannedFile;
 
@@ -33,8 +33,8 @@ sub LogNewBannedContent {
   return $rule;
 }
 
-*LogOldUserIsBanned = *UserIsBanned;
-*UserIsBanned = *LogNewUserIsBanned;
+*LogOldUserIsBanned = \&UserIsBanned;
+*UserIsBanned = \&LogNewUserIsBanned;
 
 sub LogNewUserIsBanned {
   my $str = shift;

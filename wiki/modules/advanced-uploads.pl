@@ -18,11 +18,11 @@ package OddMuse;
 
 AddModuleDescription('advanced-uploads.pl', 'Advanced File Upload Extension');
 
-use vars qw($q $HtmlHeaders);
+our ($q, $HtmlHeaders);
 $HtmlHeaders .= '<script type="text/javascript" src="/js/uploader.js"></script>';
 
-*AdvancedUploadsOldGetTextArea = *GetTextArea;
-*GetTextArea = *AdvancedUploadsNewGetTextArea;
+*AdvancedUploadsOldGetTextArea = \&GetTextArea;
+*GetTextArea = \&AdvancedUploadsNewGetTextArea;
 
 sub AdvancedUploadsNewGetTextArea {
   my ($name, $text, $rows) = @_;

@@ -26,7 +26,7 @@ package OddMuse;
 
 AddModuleDescription('creoleaddition.pl', 'Creole Addition Markup Extension');
 
-use vars qw($bol @MyRules %RuleOrder);
+our ($bol, @MyRules, %RuleOrder);
 # ....................{ CONFIGURATION                      }....................
 
 =head1 CONFIGURATION
@@ -37,13 +37,12 @@ B<wiki/config.pl> file for your Oddmuse Wiki.
 =cut
 # Since these rules are not official now, users can turn off some of
 # them.
-use vars qw($CreoleAdditionSupSub
-            $CreoleAdditionDefList
-            $CreoleAdditionIndentedParagraphs
-            $CreoleAdditionQuote
-            $CreoleAdditionMonospace
-            $CreoleAdditionSmallCaps $CreoleAdditionIsInSmallCaps
-          );
+our ($CreoleAdditionSupSub,
+            $CreoleAdditionDefList,
+            $CreoleAdditionIndentedParagraphs,
+            $CreoleAdditionQuote,
+            $CreoleAdditionMonospace,
+            $CreoleAdditionSmallCaps, $CreoleAdditionIsInSmallCaps);
 
 =head2 $CreoleAdditionSupSub
 
@@ -115,9 +114,9 @@ sub CreoleAdditionRule {
   elsif ($CreoleAdditionDefList && $bol && m/\G\s*\;[ \t]*(?=(.+(\n)(\s)*\:))/cg
     or InElement('dd') && m/\G\s*\n(\s)*\;[ \t]*(?=(.+\n(\s)*\:))/cg) {
         return CloseHtmlEnvironmentUntil('dd') . OpenHtmlEnvironment('dl', 1)
-        . AddHtmlEnvironment('dt'); }# `:' needs special treatment, later 
+        . AddHtmlEnvironment('dt'); }# `:' needs special treatment, later
     elsif (InElement('dt') and m/\G\s*\n(\s)*\:[ \t]*(?=(.+(\n)(\s)*\:)*)/cg) {
-        return CloseHtmlEnvironment() . AddHtmlEnvironment('dd');} 
+        return CloseHtmlEnvironment() . AddHtmlEnvironment('dd');}
     elsif (InElement('dd') and m/\G\s*\n(\s)*\:[ \t]*(?=(.+(\n)(\s)*\:)*)/cg) {
     return  CloseHtmlEnvironment() . AddHtmlEnvironment('dd');}
   # """block quotes"""
