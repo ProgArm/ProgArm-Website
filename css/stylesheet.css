@@ -436,6 +436,12 @@ div.foo_notimplemented {
     border-width: 1px;
 }
 
+code {
+    padding: 2px;
+    border-style: dashed;
+    border-width: 1px;
+}
+
 pre {
     margin: 2px;
 }
