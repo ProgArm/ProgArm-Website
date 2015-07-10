@@ -368,11 +368,11 @@ img {
     background: #333333;
 }
 
-.key1 {
+.key1, .foo_key1 {
     color: #90EE59;
 }
 
-.key2 {
+.key2, .foo_key2 {
     color: #6A9FFF;
 }
 
