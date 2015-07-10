@@ -6,8 +6,8 @@ $SiteName  = "ProgArm";
 
 use Digest::SHA qw(sha256_hex);
 $PassHashFunction = 'sha256_hex';
-$PassSalt = '0c5bc418b2009ab13b2cf1d5b4a46b0882cf4f60a77b09373ef5c9af26f67500';
-$AdminPass = '6a6f03729f9b663882242c72e26301410cdc8671b9269dbfd40450c5e6dfeb6d';
+$PassSalt = '';
+$AdminPass = '0d56fd9200ccc3b71e2c1a25361fd5edddb1afdf6939711a6bb08a8383649291';
 
 $CommentsPrefix = 'Comments_on_';
 $CommentsPattern = "^(?|Comments_on_(.*)|.*)\$";
