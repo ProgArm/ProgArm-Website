@@ -15,3 +15,5 @@ RewriteRule ^private$ /cgi-bin/private-wiki.pl [QSA,L,PT]
 #RewriteCond %{QUERY_STRING} ^$
 RewriteRule ^([^/]+)$ /cgi-bin/wiki.pl/$1 [QSA,L]
 RewriteRule ^$ cgi-bin/wiki.pl [QSA,L,PT]
+
+SetEnv WikiDataDir ../wiki
