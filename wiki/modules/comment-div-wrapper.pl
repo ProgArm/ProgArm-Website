@@ -14,8 +14,7 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 use strict;
-
-package OddMuse;
+use v5.10;
 
 AddModuleDescription('comment-div-wrapper.pl', 'Comment Div Wrapper Extension');
 
@@ -31,7 +30,7 @@ sub CommentDivWrapper {
       return $q->start_div({-class=>'userComment'});
     }
   }
-  if ($OpenPageName =~ /$CommentsPattern/o) {
+  if ($OpenPageName =~ /$CommentsPattern/) {
     if ($bol and m/\G(\s*\n)*----+[ \t]*\n?/cg) {
       my $html = CloseHtmlEnvironments()
 	  . ($CommentDiv++ > 0 ? $q->end_div() : $q->h2({-class=>'commentsHeading'}, T('Comments:'))) . $q->start_div({-class=>'userComment'})

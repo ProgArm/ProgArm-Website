@@ -15,15 +15,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use strict;
+use v5.10;
 
 AddModuleDescription('questionasker.pl', 'QuestionAsker Extension');
 
-our ($q, $bol, $FreeLinks, $FreeLinkPattern, $LinkPattern, $WikiLinks, @MyInitVariables, %AdminPages, %CookieParameters, %InvisibleCookieParameters);
+our ($q, $bol, $FreeLinks, $FreeLinkPattern, $LinkPattern, $WikiLinks,
+     @MyInitVariables, %AdminPages, %CookieParameters, @MyFormChanges);
+
 our (@QuestionaskerQuestions,
-	    $QuestionaskerRememberAnswer,
-	    $QuestionaskerSecretKey,
-	    $QuestionaskerRequiredList,
-	    %QuestionaskerProtectedForms);
+     $QuestionaskerRememberAnswer,
+     $QuestionaskerSecretKey,
+     $QuestionaskerRequiredList,
+     %QuestionaskerProtectedForms);
 
 # A list of arrays. The first element in each array is a string, the
 # question to be asked. The second element is a subroutine which is
@@ -61,7 +64,6 @@ sub QuestionaskerInit {
   $QuestionaskerRequiredList = FreeToNormal($QuestionaskerRequiredList);
   $AdminPages{$QuestionaskerRequiredList} = 1;
   $CookieParameters{$QuestionaskerSecretKey} = '';
-  $InvisibleCookieParameters{$QuestionaskerSecretKey} = 1;
 }
 
 *OldQuestionaskerDoPost = \&DoPost;
@@ -97,22 +99,10 @@ sub NewQuestionaskerDoPost {
   return (OldQuestionaskerDoPost(@params));
 }
 
-*OldQuestionaskerGetEditForm = \&GetEditForm;
-*GetEditForm = \&NewQuestionaskerGetEditForm;
-
-sub NewQuestionaskerGetEditForm {
-  return QuestionAddTo(OldQuestionaskerGetEditForm(@_), $_[1]);
-}
-
-*OldQuestionaskerGetCommentForm = \&GetCommentForm;
-*GetCommentForm = \&NewQuestionaskerGetCommentForm;
-
-sub NewQuestionaskerGetCommentForm {
-  return QuestionAddTo(OldQuestionaskerGetCommentForm(@_));
-}
+push(@MyFormChanges, \&QuestionAddTo);
 
 sub QuestionAddTo {
-  my ($form, $upload) = @_;
+  my ($form, $type, $upload) = @_;
   if (not $upload
       and not QuestionaskerException(GetId())
       and not $QuestionaskerRememberAnswer && GetParam($QuestionaskerSecretKey, 0)

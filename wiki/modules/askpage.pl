@@ -14,12 +14,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use strict;
+use v5.10;
 
 AddModuleDescription('askpage.pl', 'Ask Page Extension');
 
 use Fcntl qw(:DEFAULT :flock);
 
-our ($DataDir, $NewComment);
+our ($DataDir);
 our ($AskPage, $QuestionPage, $NewQuestion);
 # Don't forget to set your $CommentsPattern to include both $AskPage and $QuestionPage
 $AskPage = 'Ask';
@@ -50,12 +51,14 @@ sub NewAskPageDoPost {
   OldAskPageDoPost($id, @_); # keep original functionality for regular edits
 }
 
-*OldAskPageGetCommentForm=\&GetCommentForm;
-*GetCommentForm=\&NewAskPageGetCommentForm;
-sub NewAskPageGetCommentForm {
-  my ($id, $rev, $comment) = @_;
-  $NewComment = $NewQuestion if $id eq $AskPage;
-  OldAskPageGetCommentForm(@_);
+*OldAskPageGetTextArea=\&GetTextArea;
+*GetTextArea=\&NewAskPageGetTextArea;
+sub NewAskPageGetTextArea {
+  my ($name, $text, @rest) = @_;
+  if ($name eq 'aftertext' and not $text and GetId() eq $AskPage) {
+    $text = $NewQuestion;
+  }
+  OldAskPageGetTextArea($name, $text, @rest);
 }
 
 *OldAskPageJournalSort=\&JournalSort;

@@ -13,16 +13,17 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 use strict;
-
-package OddMuse;
+use v5.10;
 
 AddModuleDescription('banned-regexps.pl', 'Banning Regular Expressions');
 
-=h1 Compatibility
+=encoding utf8
+
+=head1 Compatibility
 
 This extension works with logbannedcontent.pl.
 
-=h1 Example content for the BannedRegexps page:
+=head1 Example content for the BannedRegexps page:
 
     # This page lists regular expressions that prevent the saving of a page.
     # The regexps are matched against any page or comment submitted.

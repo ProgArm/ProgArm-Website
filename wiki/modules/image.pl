@@ -17,6 +17,7 @@
 #    Boston, MA 02111-1307 USA
 
 use strict;
+use v5.10;
 
 AddModuleDescription('image.pl', 'Image Extension');
 
@@ -31,7 +32,7 @@ push(@MyRules, \&ImageSupportRule);
 
 sub ImageSupportRule {
   my $result = undef;
-  if (m!\G\[\[image((/[a-z]+)*)( external)?:\s*([^]|]+?)\s*(\|[^]|]+?)?\s*(\|[^]|]*?)?\s*(\|[^]|]*?)?\s*(\|[^]|]*?)?\s*\]\](\{([^}]+)\})?!gc) {
+  if (m!\G\[\[image((/[a-z]+)*)( external)?:\s*([^]|]+?)\s*(\|[^]|]+?)?\s*(\|[^]|]*?)?\s*(\|[^]|]*?)?\s*(\|[^]|]*?)?\s*\]\](\{([^}]+)\})?!cg) {
     my $oldpos = pos;
     my $class = 'image' . $1;
     my $external = $3;
@@ -118,6 +119,7 @@ sub ImageGetExternalUrl {
     } elsif ($UsePathInfo and !$Monolithic) {
       $link = $ScriptName . '/' . $link;
     } elsif ($Monolithic) {
+      # if used together with all.pl
       $link = '#' . $link;
     } else {
       $link = $ScriptName . '?' . $link;

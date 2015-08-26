@@ -1,5 +1,6 @@
 #!/usr/bin/env perl
 use strict;
+use v5.10;
 
 # ====================[ creoleaddition.pl                  ]====================
 
@@ -22,8 +23,6 @@ creoleaddition is simply installable; simply:
 =back
 
 =cut
-package OddMuse;
-
 AddModuleDescription('creoleaddition.pl', 'Creole Addition Markup Extension');
 
 our ($bol, @MyRules, %RuleOrder);

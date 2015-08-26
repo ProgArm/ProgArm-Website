@@ -14,8 +14,7 @@
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
 use strict;
-
-package OddMuse;
+use v5.10;
 
 AddModuleDescription('accesskeys.pl', 'Links With AccessKeys Extension');
 
@@ -23,7 +22,7 @@ our (@MyRules, $FreeLinkPattern);
 
 push(@MyRules, \&LinksWithAccessKeys);
 sub LinksWithAccessKeys {
-  if (m/\G(\[\[$FreeLinkPattern\{(.)\}\]\])/cog) {
+  if (m/\G(\[\[$FreeLinkPattern\{(.)\}\]\])/cg) {
     my ($id, $key) = ($2, $3);
     Dirty($1);
     $id = FreeToNormal($id);
