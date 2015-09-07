@@ -231,8 +231,8 @@ sub InitConfig {
   }
   if ($ConfigPage) { # $FS and $MaxPost must be set in config file!
     my ($status, $data) = ReadFile(GetPageFile(FreeToNormal($ConfigPage)));
-    my %data = ParseData($data); # before InitVariables so GetPageContent won't work
-    eval $data{text} if $data{text}; # perlcritic dislikes the use of eval here but we really mean it
+    my $page = ParseData($data); # before InitVariables so GetPageContent won't work
+    eval $page->{text} if $page->{text}; # perlcritic dislikes the use of eval here but we really mean it
     $Message .= CGI::p("$ConfigPage: $@") if $@;
   }
 }
@@ -1384,8 +1384,9 @@ sub NewText {
 sub BrowsePage {
   my ($id, $raw, $comment, $status) = @_;
   OpenPage($id);
-  my ($text, $revision, $summary) = GetTextRevision(GetParam('revision', ''));
-  $text = NewText($id) unless $revision or $Page{revision}; # new text for new pages
+  my ($revisionPage, $revision) = GetTextRevision(GetParam('revision', ''));
+  my $text    = $revisionPage->{text};
+  $text = NewText($id) unless $revision or $Page{revision} or $comment; # new text for new pages
   # handle a single-level redirect
   my $oldId = GetParam('oldid', '');
   if ((substr($text, 0, 10) eq '#REDIRECT ')) {
@@ -1414,13 +1415,13 @@ sub BrowsePage {
   print GetHeader($id, NormalToFree($id), $oldId, undef, $status);
   my $showDiff = GetParam('diff', 0);
   if ($UseDiff and $showDiff) {
-    PrintHtmlDiff($showDiff, GetParam('diffrevision', $revision), $revision, $text, $summary);
+    PrintHtmlDiff($showDiff, GetParam('diffrevision'), $revisionPage, $Page{revision});
     print $q->hr();
   }
   PrintPageContent($text, $revision, $comment);
   SetParam('rcclusteronly', $id) if FreeToNormal(GetCluster($text)) eq $id; # automatically filter by cluster
   PrintRcHtml($id);
-  PrintFooter($id, $revision, $comment);
+  PrintFooter($id, $revision, $comment, $revisionPage);
 }
 
 sub ReBrowsePage {
@@ -1625,7 +1626,7 @@ sub ProcessRcLines {
 
 sub RcHeader {
   my ($from, $upto, $html) = (GetParam('from', 0), GetParam('upto', 0), '');
-  my $days = GetParam('days', $RcDefault);
+  my $days = GetParam('days') + 0 || $RcDefault; # force numeric $days
   my $all = GetParam('all', 0);
   my $edits = GetParam('showedit', 0);
   my $rollback = GetParam('rollback', 0);
@@ -1773,9 +1774,9 @@ sub RcHtml {
       if ($revision == 1) {
 	$diff .= '(' . $q->span({-class=>'new'}, T('new')) . ')';
       } elsif ($all) {
-	$diff .= '(' . ScriptLinkDiff(2, $id, T('diff'), '', $all_revision) .')';
+	$diff .= '(' . ScriptLinkDiff(2, $id, T('diff'), $all_revision) .')';
       } else {
-	$diff .= '(' . ScriptLinkDiff($minor ? 2 : 1, $id, T('diff'), '') . ')';
+	$diff .= '(' . ScriptLinkDiff($minor ? 2 : 1, $id, T('diff')) . ')';
       }
     }
     $html .= $q->li($q->span({-class=>'time'}, CalcTime($ts)), $diff, $history,
@@ -1963,10 +1964,10 @@ sub DoRawHistory {
   RcTextRevision($id, $Page{ts}, $Page{host}, $Page{username}, $Page{summary},
 		 $Page{minor}, $Page{revision}, \@languages, undef, 1);
   foreach my $revision (GetKeepRevisions($OpenPageName)) {
-    my %keep = GetKeptRevision($revision);
-    @languages = split(/,/, $keep{languages});
-    RcTextRevision($id, $keep{ts}, $keep{host}, $keep{username},
-		   $keep{summary}, $keep{minor}, $keep{revision}, \@languages);
+    my $keep = GetKeptRevision($revision);
+    @languages = split(/,/, $keep->{languages});
+    RcTextRevision($id, $keep->{ts}, $keep->{host}, $keep->{username},
+		   $keep->{summary}, $keep->{minor}, $keep->{revision}, \@languages);
   }
 }
 
@@ -1979,9 +1980,9 @@ sub DoHtmlHistory {
   my $date = CalcDay($Page{ts});
   my @html = (GetHistoryLine($id, \%Page, $row++, $rollback, $date, 1));
   foreach my $revision (GetKeepRevisions($OpenPageName)) {
-    my %keep = GetKeptRevision($revision);
-    my $new = CalcDay($keep{ts});
-    push(@html, GetHistoryLine($id, \%keep, $row++, $rollback,
+    my $keep = GetKeptRevision($revision);
+    my $new = CalcDay($keep->{ts});
+    push(@html, GetHistoryLine($id, $keep, $row++, $rollback,
 			       $new, $new ne $date));
     $date = $new;
   }
@@ -2383,7 +2384,7 @@ sub PrintPageContent {
 }
 
 sub PrintFooter {
-  my ($id, $rev, $comment) = @_;
+  my ($id, $rev, $comment, $page) = @_;
   if (GetParam('embed', $EmbedWiki)) {
     print $q->end_html, "\n";
     return;
@@ -2400,11 +2401,11 @@ sub WrapperEnd { # called via @MyFooters
 }
 
 sub DefaultFooter { # called via @MyFooters
-  my ($id, $rev, $comment) = @_;
+  my ($id, $rev, $comment, $page) = @_;
   my $html = $q->start_div({-class=>'footer'}) . $q->hr();
   $html .= GetGotoBar($id) if GetParam('toplinkbar', $TopLinkBar) != 1;
   $html .= GetFooterLinks($id, $rev);
-  $html .= GetFooterTimestamp($id, $rev);
+  $html .= GetFooterTimestamp($id, $rev, $page);
   $html .= GetSearchForm() if GetParam('topsearchform', $TopSearchForm) != 1;
   if ($DataDir =~ m|/tmp/|) {
     $html .= $q->p($q->strong(T('Warning') . ': ')
@@ -2417,11 +2418,12 @@ sub DefaultFooter { # called via @MyFooters
 }
 
 sub GetFooterTimestamp {
-  my ($id, $rev) = @_;
-  if ($id and $rev ne 'history' and $rev ne 'edit' and $Page{revision}) {
-    my @elements = (($rev eq '' ? T('Last edited') : T('Edited')), TimeToText($Page{ts}),
-		    Ts('by %s', GetAuthorLink($Page{host}, $Page{username})));
-    push(@elements, ScriptLinkDiff(2, $id, T('(diff)'), $rev)) if $UseDiff and $Page{revision} > 1;
+  my ($id, $rev, $page) = @_;
+  $page //= \%Page;
+  if ($id and $rev ne 'history' and $rev ne 'edit' and $page->{revision}) {
+    my @elements = (($rev eq '' ? T('Last edited') : T('Edited')), TimeToText($page->{ts}),
+		    Ts('by %s', GetAuthorLink($page->{host}, $page->{username})));
+    push(@elements, ScriptLinkDiff(2, $id, T('(diff)'), $rev)) if $UseDiff and $page->{revision} > 1;
     return $q->div({-class=>'time'}, @elements);
   }
   return '';
@@ -2468,9 +2470,10 @@ sub GetCommentForm {
       and $id =~ /$CommentsPattern/ and UserCanEdit($id, 0, 1)) {
     my $html = $q->div({-class=>'comment'},
 		       GetFormStart(undef, undef, 'comment'),
-		       $q->p(GetHiddenValue('title', $id), $q->br(),
+		       $q->p(GetHiddenValue('title', $id),
 			     $q->label({-for=>'aftertext', -accesskey=>T('c')},
-				       GetTextArea('aftertext', $comment, 10))),
+				       T('Add your comment here:')), $q->br(),
+			     GetTextArea('aftertext', $comment, 10)),
 		       $EditNote,
 		       $q->p($q->span({-class=>'username'},
 				      $q->label({-for=>'username'}, T('Username:')), ' ',
@@ -2529,52 +2532,51 @@ sub GetGotoBar {    # ignore $id parameter
 }
 
 sub PrintHtmlDiff {
-  my ($type, $old, $new, $text, $summary) = @_;
+  my ($type, $old, $page, $current) = @_;
+  $page //= \%Page;
+  $current //= $page->{revision};
+  $type = 2 if $old or $page->{revision} != $current; # explicit revisions means minor diffs!
+  my $summary = $page->{$type == 1 ? 'lastmajorsummary' : 'summary'};
   my $intro = T('Last edit');
-  my $diff = GetCacheDiff($type == 1 ? 'major' : 'minor');
-  # compute old revision if cache is disabled or no cached diff is available
-  if (not $old and (not $diff or GetParam('cache', $UseCache) < 1)) {
-    if ($type == 1) {
-      $old = $Page{lastmajor} - 1;
-      ($text, $new, $summary) = GetTextRevision($Page{lastmajor}, 1)
-	unless $new or $Page{lastmajor} == $Page{revision};
-    } elsif ($new) {
-      $old = $new - 1;
-    } else {
-      $old = $Page{revision} - 1;
-    }
+  my $diff;
+  # use the cached diff if possible
+  if (not $old or $old == $page->{$type == 1 ? 'lastmajor' : 'revision'} - 1) {
+    $diff = GetCacheDiff($type == 1 ? 'major' : 'minor', $page);
+    $old = $page->{$type == 1 ? 'lastmajor' : 'revision'} - 1 if not $old;
   }
-  if ($old > 0) { # generate diff if the computed old revision makes sense
-    $diff = GetKeptDiff($text, $old);
-    $intro = Tss('Difference between revision %1 and %2', $old,
-		 $new ? Ts('revision %s', $new) : T('current revision'));
-  } elsif ($type == 1 and $Page{lastmajor} and $Page{lastmajor} != $Page{revision}) {
-    my %keep = GetKeptRevision($Page{lastmajor});
-    $summary = $keep{summary};
-    $intro = Ts('Last major edit (%s)', ScriptLinkDiff(1, $OpenPageName, T('later minor edits'),
-						       undef, $Page{lastmajor} || 1));
+  # if there was no cached diff: compute it, and new intro
+  if (not $diff and $old > 0) {
+    ($diff, my $keptPage) = GetKeptDiff($page->{text}, $old);
+    my $to = $page->{revision} != $current ? Ts('revision %s', $page->{revision}) : T('current revision');
+    $intro = Tss('Difference between revision %1 and %2', $old, $to);
+  }
+  # if this is the last major diff and there are minor diffs to look at, and we
+  # didn't request a particular old revision
+  if ($type == 1 and $page->{lastmajor} and $page->{lastmajor} != $current) {
+    $intro = Ts('Last major edit (%s)', ScriptLinkDiff(2, $OpenPageName, T('later minor edits'),
+						       undef, $page->{lastmajor} || 1));
   }
   $diff =~ s!<p><strong>(.*?)</strong></p>!'<p><strong>' . T($1) . '</strong></p>'!eg;
   $diff ||= T('No diff available.');
-  $summary = $Page{summary} if not $summary and not $new;
-  $summary = $q->p({-class=>'summary'}, T('Summary:') . ' ' . QuoteHtml($summary)) if $summary;
-  print $q->div({-class=>'diff'}, $q->p($q->b($intro)), $summary, $diff);
+  print $q->div({-class=>'diff'}, $q->p($q->b($intro)),
+		$summary ? $q->p({-class=>'summary'}, T('Summary:') . ' ' . QuoteHtml($summary)) : '',
+		$diff);
 }
 
 sub GetCacheDiff {
-  my $type = shift;
-  my $diff = $Page{"diff-$type"};
-  $diff = $Page{"diff-minor"} if $diff eq '1'; # if major eq minor diff
+  my ($type, $page) = @_;
+  my $diff = $page->{"diff-$type"};
+  $diff = $page->{"diff-minor"} if $diff eq '1'; # if major eq minor diff
   return $diff;
 }
 
 sub GetKeptDiff {
   my ($new, $revision) = @_;
   $revision ||= 1;
-  my ($old, $rev) = GetTextRevision($revision, 1);
-  return '' unless $rev;
-  return T("The two revisions are the same.") if $old eq $new;
-  return GetDiff($old, $new, $rev);
+  my ($revisionPage, $rev) = GetTextRevision($revision, 1);
+  return '', $revisionPage unless $rev;
+  return T("The two revisions are the same."), $revisionPage if $revisionPage->{text} eq $new;
+  return GetDiff($revisionPage->{text}, $new, $rev), $revisionPage;
 }
 
 sub DoDiff {      # Actualy call the diff program
@@ -2687,14 +2689,15 @@ sub ParseData {
     $value =~ s/\n\t/\n/g;
     $result{$key} = $value;
   }
-  return %result;
+  # return unless %result; # undef instead of empty hash # TODO should we do that?
+  return wantarray ? %result : \%result; # return list sometimes for compatibility
 }
 
 sub OpenPage {      # Sets global variables
   my $id = shift;
   return if $OpenPageName eq $id;
   if ($IndexHash{$id}) {
-    %Page = ParseData(ReadFileOrDie(GetPageFile($id)));
+    %Page = %{ParseData(ReadFileOrDie(GetPageFile($id)))};
   } else {
     %Page = ();
     $Page{ts} = $Now;
@@ -2709,42 +2712,40 @@ sub GetTextAtTime { # call with opened page, return $minor if all pages between 
   my $minor = $Page{minor};
   return ($Page{text}, $minor, 0) if $Page{ts} <= $ts; # current page is old enough
   return ($DeletedPage, $minor, 0) if $Page{revision} == 1 and $Page{ts} > $ts; # created after $ts
-  my %keep = ();    # info may be needed after the loop
+  my $keep = {};    # info may be needed after the loop
   foreach my $revision (GetKeepRevisions($OpenPageName)) {
-    %keep = GetKeptRevision($revision);
-    $minor = 0 if not $keep{minor} and $keep{ts} >= $ts; # ignore keep{minor} if keep{ts} is too old
-    return ($keep{text}, $minor, 0) if $keep{ts} <= $ts;
+    $keep = GetKeptRevision($revision);
+    # $minor = 0 unless defined $keep; # TODO?
+    $minor = 0 if not $keep->{minor} and $keep->{ts} >= $ts; # ignore keep{minor} if keep{ts} is too old
+    return ($keep->{text}, $minor, 0) if $keep->{ts} <= $ts;
   }
-  return ($DeletedPage, $minor, 0) if $keep{revision} == 1; # then the page was created after $ts!
-  return ($keep{text}, $minor, $keep{ts}); # the oldest revision available is not old enough
+  return ($DeletedPage, $minor, 0) if $keep->{revision} == 1; # then the page was created after $ts!
+  return ($keep->{text}, $minor, $keep->{ts}); # the oldest revision available is not old enough
 }
 
 sub GetTextRevision {
   my ($revision, $quiet) = @_;
   $revision =~ s/\D//g;   # Remove non-numeric chars
-  return ($Page{text}, $revision, $Page{summary}) unless $revision and $revision ne $Page{revision};
-  my %keep = GetKeptRevision($revision);
-  if (not %keep) {
+  return wantarray ? (\%Page, $revision) : \%Page unless $revision and $revision ne $Page{revision};
+  my $keep = GetKeptRevision($revision);
+  if (not defined $keep) {
     $Message .= $q->p(Ts('Revision %s not available', $revision)
 		      . ' (' . T('showing current revision instead') . ')') unless $quiet;
-    return ($Page{text}, '', '');
+    return wantarray ? (\%Page, '') : \%Page;
   }
   $Message .= $q->p(Ts('Showing revision %s', $revision)) unless $quiet;
-  return ($keep{text}, $revision, $keep{summary});
+  return wantarray ? ($keep, $revision) : $keep;
 }
 
 sub GetPageContent {
   my $id = shift;
-  if ($IndexHash{$id}) {
-    my %data = ParseData(ReadFileOrDie(GetPageFile($id)));
-    return $data{text};
-  }
+  return ParseData(ReadFileOrDie(GetPageFile($id)))->{text} if $IndexHash{$id};
   return '';
 }
 
 sub GetKeptRevision {   # Call after OpenPage
   my ($status, $data) = ReadFile(GetKeepFile($OpenPageName, (shift)));
-  return () unless $status;
+  return unless $status;
   return ParseData($data);
 }
 
@@ -2822,9 +2823,9 @@ sub ExpireKeepFiles {   # call with opened page
   return unless $KeepDays;
   my $expirets = $Now - ($KeepDays * 86400); # 24*60*60
   foreach my $revision (GetKeepRevisions($OpenPageName)) {
-    my %keep = GetKeptRevision($revision);
-    next if $keep{'keep-ts'} >= $expirets;
-    next if $KeepMajor and $keep{revision} == $Page{lastmajor};
+    my $keep = GetKeptRevision($revision);
+    next if $keep->{'keep-ts'} >= $expirets;
+    next if $KeepMajor and $keep->{revision} == $Page{lastmajor};
     unlink GetKeepFile($OpenPageName, $revision);
   }
 }
@@ -3031,8 +3032,8 @@ sub DoEdit {
     ReportError(T('Only administrators can upload files.'), '403 FORBIDDEN');
   }
   OpenPage($id);
-  my ($text, $revision) = GetTextRevision(GetParam('revision', ''), 1); # maybe revision reset!
-  my $oldText = $preview ? $newText : $text;
+  my ($revisionPage, $revision) = GetTextRevision(GetParam('revision', ''), 1); # maybe revision reset!
+  my $oldText = $preview ? $newText : $revisionPage->{text};
   my $isFile = TextIsFile($oldText);
   $upload //= $isFile;
   if ($upload and not $UploadAllowed and not UserIsAdmin()) {
@@ -3110,7 +3111,8 @@ sub DoDownload {
   my $id = shift;
   OpenPage($id) if ValidIdOrDie($id);
   print $q->header(-status=>'304 NOT MODIFIED') and return if FileFresh(); # FileFresh needs an OpenPage!
-  my ($text, $revision) = GetTextRevision(GetParam('revision', '')); # maybe revision reset!
+  my ($revisionPage, $revision) = GetTextRevision(GetParam('revision', '')); # maybe revision reset!
+  my $text = $revisionPage->{text};
   if (my ($type, $encoding) = TextIsFile($text)) {
     my ($data) = $text =~ /^[^\n]*\n(.*)/s;
     my %allowed = map {$_ => 1} @UploadTypes;
@@ -3603,7 +3605,7 @@ sub DoPost {
     eval { require MIME::Base64; $_ = MIME::Base64::encode($content) };
     $string = "#FILE $type $encoding\n" . $_;
   } else {			# ordinary text edit
-    $string = AddComment($old, $comment) if $comment;
+    $string = AddComment($old, $comment) if defined $comment;
     if ($comment and substr($string, 0, length($DeletedPage)) eq $DeletedPage) { # look ma, no regexp!
       $string = substr($string, length($DeletedPage)); # undelete pages when adding a comment
     }
@@ -3625,7 +3627,7 @@ sub DoPost {
   my $oldrev = $Page{revision};
   if (GetParam('Preview', '')) { # Preview button was used
     ReleaseLock();
-    if ($comment) {
+    if (defined $comment) {
       BrowsePage($id, 0, RunMyMacros($comment)); # show macros in preview
     } else {
       DoEdit($id, $string, 1);
@@ -3651,7 +3653,7 @@ sub DoPost {
     $string = $2;
   }
   my $generalwarning = 0;
-  if ($newAuthor and $oldtime ne $myoldtime and not $comment) {
+  if ($newAuthor and $oldtime ne $myoldtime and not defined $comment) {
     if ($myoldtime) {
       my ($ancestor) = GetTextAtTime($myoldtime);
       if ($ancestor and $old ne $ancestor) {
@@ -3730,6 +3732,7 @@ sub Save {      # call within lock, with opened page
   SaveKeepFile(); # deletes blocks, flags, diff-major, and diff-minor, and sets keep-ts
   ExpireKeepFiles();
   $Page{lastmajor} = $revision unless $minor;
+  $Page{lastmajorsummary} = $summary unless $minor;
   @Page{qw(ts revision summary username host minor text)} =
       ($Now, $revision, $summary, $user, $host, $minor, $new);
   if ($UseDiff and $UseCache > 1 and $revision > 1 and not $upload and not TextIsFile($old)) {
