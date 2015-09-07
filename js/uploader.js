@@ -45,7 +45,7 @@ function uploadFile() {
         xhr.addEventListener('load', uploadComplete, false);
         xhr.addEventListener('error', uploadFailed, false);
         xhr.addEventListener('abort', uploadCanceled, false);
-        xhr.open('POST', 'http://files.progarm.org/cgi-bin/upload.pl');
+        xhr.open('POST', 'https://files.progarm.org/cgi-bin/upload.pl');
         xhr.send(fd);
     } else
         addFile(lastFiles);
