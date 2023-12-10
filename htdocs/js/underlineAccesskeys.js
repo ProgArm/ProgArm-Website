@@ -61,10 +61,10 @@ function underlineCharacter(string, character) {
     // unicode things work too unexpectedly on different platforms
     // and different fonts. Feel free to change this!
     var regex = new RegExp('(' + character + ')', 'i');
-    if (navigator.appVersion.indexOf("Win") != -1)
+//    if (navigator.appVersion.indexOf("Win") != -1)
 	return string.replace(regex, "\u035F$1");
-    else
-	return string.replace(regex, "\u0332$1");
+//    else
+//	return string.replace(regex, "\u0332$1");
     //return string.replace(regex, "\u0331$1"); // another good combining underline, but it is a bit too short
 }
 

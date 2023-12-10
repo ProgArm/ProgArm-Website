@@ -9,11 +9,9 @@ RewriteCond %{HTTP_HOST} ^www.(.+)$ [NC]
 RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
 
 RewriteCond %{QUERY_STRING} ^$
-RewriteRule ^private/([^/]*)$ /cgi-bin/private-wiki.pl/$1 [QSA,L]
-RewriteRule ^private$ /cgi-bin/private-wiki.pl [QSA,L,PT]
+RewriteRule ^private/([^/]*)$ /private/cgi-bin/wiki.pl/$1 [QSA,L]
+RewriteRule ^private$ /private/cgi-bin/wiki.pl [QSA,L,PT]
 
 #RewriteCond %{QUERY_STRING} ^$
 RewriteRule ^([^/]+)$ /cgi-bin/wiki.pl/$1 [QSA,L]
 RewriteRule ^$ cgi-bin/wiki.pl [QSA,L,PT]
-
-SetEnv WikiDataDir ../wiki

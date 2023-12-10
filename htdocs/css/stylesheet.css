@@ -107,6 +107,9 @@ h1:after {
     content: "$";
     font-size: 17px;
 }*/
+h2 {
+    border-bottom: 1px solid #555;
+}
 
 h3 {
     margin-top: 28px;
@@ -294,7 +297,7 @@ img {
     text-align: center;
 }
 
-.foo_nextversion, .foo_currentversion, .foo_oldversion {
+.foo_nextversion, .foo_currentversion, .foo_oldversion, .foo_yes, .foo_nope, .foo_kinda {
     padding: 3px;
     display: block;
 }
@@ -303,11 +306,15 @@ img {
     background-color: #111137;
 }
 
-.foo_currentversion {
+.foo_kinda {
+    background-color: #373711;
+}
+
+.foo_currentversion, .foo_yes {
     background-color: #113711;
 }
 
-.foo_oldversion {
+.foo_oldversion, .foo_nope {
     background-color: #371111;
 }
 

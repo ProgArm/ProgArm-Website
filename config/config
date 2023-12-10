@@ -27,7 +27,7 @@ $CreoleLineBreaks = 1;
 $CreoleTableCellsAllowBlockLevelElements = 1;
 $CreoleDashStyleUnorderedLists = 1;
 
-$HtmlHeaders .= '<script type="text/javascript" src="/js/underlineAccesskeys.js"></script>';
+# $HtmlHeaders .= '<script type="text/javascript" src="/js/underlineAccesskeys.js"></script>';
 
 @QuestionaskerQuestions = (
   ['Type "ProgArm" here:' => sub { shift =~ /progarm/i }] # XXX will /i handle non-ascii characters here?
