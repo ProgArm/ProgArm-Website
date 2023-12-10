@@ -20,8 +20,8 @@ $SurgeProtectionViews = 20;
 
 $GitMail = 'anybody@progarm.org';
 
-$FullUrl = ($ENV{'HTTPS'} ? 'https' : 'http') . '://progarm.org/private';
-$ScriptName = ($ENV{'HTTPS'} ? 'https' : 'http') . '://progarm.org/private';
+$FullUrl = 'https://progarm.org/private';
+$ScriptName = 'https://progarm.org/private';
 
 $CreoleLineBreaks = 1;
 $CreoleTableCellsAllowBlockLevelElements = 1;

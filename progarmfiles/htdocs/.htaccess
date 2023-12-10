@@ -1,0 +1,8 @@
+Options -Indexes
+
+RewriteEngine On
+
+RewriteCond %{QUERY_STRING} ^$
+RewriteRule ^([^/]+)$ /upload/$1 [QSA,L]
+
+RewriteRule ^$ https://progarm.org [R=301,L]

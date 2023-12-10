@@ -1,0 +1,28 @@
+version: "3.7"
+
+services:
+  backend:
+    image: postmodern.alexdaniel.org/progarm-backend:latest
+    build:
+      context: .
+    volumes:
+      - /home/progarm/data/progarm/data:/srv/data
+      - /home/progarm/data/progarm/data-private:/srv/data-private
+      - /home/progarm/data/progarm/logs:/srv/logs
+    networks:
+      - caddy
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 30s
+        order: start-first
+
+      labels:
+        caddy: progarm.org, www.progarm.org
+        caddy.tls: alex.jakimenko+caddy@gmail.com
+        caddy.reverse_proxy: "{{upstreams 80}}"
+
+networks:
+  caddy:
+    external: true
