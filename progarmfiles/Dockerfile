@@ -1,4 +1,4 @@
-FROM httpd:2.4.59
+FROM httpd:2.4.66
 
 RUN apt-get update
 RUN apt-get install -y libcgi-pm-perl
